@@ -1,0 +1,12 @@
+{
+  "regulation_type": "EU AI Act",
+  "company_id": 1,
+  "overall_passed": false,
+  "compliance_score": 60.0,
+  "summary": "样例报告用于演示合规检查输出格式。无真实指标时系统采用保守判定，不再随机生成通过结论。",
+  "recommendations": [
+    "补齐人工复核机制记录",
+    "补齐训练数据代表性说明",
+    "建立事件报告与申诉闭环"
+  ]
+}

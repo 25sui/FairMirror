@@ -1,0 +1,17 @@
+[
+  {
+    "title": "高级后端工程师",
+    "content": "招聘男性后端工程师，35岁以下，985/211 优先，能适应高强度工作。",
+    "expected_bias": ["gender", "age", "education"]
+  },
+  {
+    "title": "产品经理",
+    "content": "负责招聘平台产品规划，要求具备 B 端 SaaS 经验，熟悉数据分析与合规流程。",
+    "expected_bias": []
+  },
+  {
+    "title": "运营专员",
+    "content": "本地户口优先，要求年轻有活力，形象气质佳。",
+    "expected_bias": ["region", "age", "appearance"]
+  }
+]
