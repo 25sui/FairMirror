@@ -1,161 +1,54 @@
 import axios from 'axios';
-import {
-  JDAuditResponse,
-  ResumeScanResponse,
-  InterviewAnalysisResponse,
-  ComplianceReport,
-  DashboardMetrics,
-} from '../types';
+import type { AuditJobSummary, AuditReportSummary, RoleProfile } from '../types/audit';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+export const api = axios.create({
+  baseURL: `${API_BASE_URL}/api/v1`,
+  timeout: 10000,
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+export async function getDemo() {
+  const { data } = await api.get('/demo');
+  return data;
+}
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+export async function auditJd(title: string, content: string) {
+  const { data } = await api.post('/jd/audit', { title, content, role: 'hr' });
+  return data;
+}
 
-export const authAPI = {
-  login: async (email: string, password: string) => {
-    const formData = new FormData();
-    formData.append('username', email);
-    formData.append('password', password);
-    const response = await apiClient.post('/auth/login', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return response.data;
-  },
+export async function auditResume(candidateName: string, content: string, targetRole: string) {
+  const { data } = await api.post('/resume/audit', { candidate_name: candidateName, content, target_role: targetRole });
+  return data;
+}
 
-  register: async (userData: {
-    email: string;
-    username: string;
-    password: string;
-    role: string;
-  }) => {
-    const response = await apiClient.post('/auth/register', userData);
-    return response.data;
-  },
+export async function auditInterviewDemo() {
+  const { data } = await api.get('/interview/demo');
+  return data;
+}
 
-  getCurrentUser: async () => {
-    const response = await apiClient.get('/auth/me');
-    return response.data;
-  },
-};
+export async function getComplianceReport() {
+  const { data } = await api.get('/compliance/report');
+  return data;
+}
 
-export const jdAPI = {
-  analyze: async (jdText: string, jobTitle?: string): Promise<JDAuditResponse> => {
-    const response = await apiClient.post('/jd/analyze', {
-      jd_text: jdText,
-      job_title: jobTitle,
-    });
-    return response.data;
-  },
+export async function getDashboardSummary() {
+  const { data } = await api.get('/dashboard/summary');
+  return data;
+}
 
-  create: async (jobData: any) => {
-    const response = await apiClient.post('/jd/', jobData);
-    return response.data;
-  },
+export async function getRoles(): Promise<RoleProfile[]> {
+  const { data } = await api.get('/roles');
+  return data;
+}
 
-  list: async (companyId?: number) => {
-    const response = await apiClient.get('/jd/', {
-      params: { company_id: companyId },
-    });
-    return response.data;
-  },
+export async function getAuditJobs(): Promise<AuditJobSummary[]> {
+  const { data } = await api.get('/audit-jobs');
+  return data;
+}
 
-  get: async (jobId: number) => {
-    const response = await apiClient.get(`/jd/${jobId}`);
-    return response.data;
-  },
-};
-
-export const resumeAPI = {
-  scan: async (resumeText: string, jobId?: number): Promise<ResumeScanResponse> => {
-    const response = await apiClient.post('/resume/scan', {
-      resume_text: resumeText,
-      job_id: jobId,
-    });
-    return response.data;
-  },
-
-  create: async (candidateId: string, content: string, jobId?: number) => {
-    const response = await apiClient.post('/resume/', null, {
-      params: { candidate_id: candidateId, content, job_id: jobId },
-    });
-    return response.data;
-  },
-};
-
-export const interviewAPI = {
-  analyze: async (
-    interviewData: any[],
-    groups?: string[]
-  ): Promise<InterviewAnalysisResponse> => {
-    const response = await apiClient.post('/interview/analyze', {
-      interview_data: interviewData,
-      groups,
-    });
-    return response.data;
-  },
-
-  createBatch: async (records: any[]) => {
-    const response = await apiClient.post('/interview/batch', records);
-    return response.data;
-  },
-
-  getByJob: async (jobId: number) => {
-    const response = await apiClient.get(`/interview/job/${jobId}`);
-    return response.data;
-  },
-};
-
-export const complianceAPI = {
-  getEUAIActReport: async (companyId: number): Promise<ComplianceReport> => {
-    const response = await apiClient.get(`/compliance/eu-ai-act/${companyId}`);
-    return response.data;
-  },
-
-  getChinaAIethicsReport: async (companyId: number): Promise<ComplianceReport> => {
-    const response = await apiClient.get(`/compliance/china-ai-ethics/${companyId}`);
-    return response.data;
-  },
-
-  exportReport: async (companyId: number, regulationType: string) => {
-    const response = await apiClient.post('/compliance/report/export', null, {
-      params: { company_id: companyId, regulation_type: regulationType },
-    });
-    return response.data;
-  },
-};
-
-export const dashboardAPI = {
-  getMetrics: async (companyId?: number): Promise<DashboardMetrics> => {
-    const response = await apiClient.get('/dashboard/metrics', {
-      params: { company_id: companyId },
-    });
-    return response.data;
-  },
-};
-
-export default apiClient;
+export async function getReportSummary(): Promise<AuditReportSummary> {
+  const { data } = await api.get('/reports/summary');
+  return data;
+}

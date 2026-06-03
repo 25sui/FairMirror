@@ -1,55 +1,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import warnings
 
-warnings.filterwarnings("ignore")
-
+from app.api.routes import router
 from app.core.config import settings
-from app.api.router import api_router
-from app.models.database import init_db
-
-print("Starting FairMirror in FULL MODE...")
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    description="AI反偏见招聘镜像 - 全链路招聘公平性审计平台",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    title=settings.app_name,
+    description="FairMirror 反偏见招聘平台 API：JD 审计、简历防御盾、面试公平监控与合规报告。",
+    version="0.1.0",
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix=settings.API_V1_PREFIX)
-
-
-@app.on_event("startup")
-async def startup_event():
-    print("Initializing database...")
-    init_db()
-    print("Database initialized!")
+app.include_router(router, prefix=settings.api_prefix)
 
 
 @app.get("/")
-async def root():
-    return {
-        "message": "Welcome to FairMirror API",
-        "version": settings.VERSION,
-        "mode": "full",
-        "docs": "/docs"
-    }
-
-
-@app.get("/health")
-async def health_check():
-    return {
-        "status": "healthy",
-        "service": "FairMirror API",
-        "mode": "full"
-    }
+def root() -> dict[str, str]:
+    return {"name": settings.app_name, "docs": "/docs"}
