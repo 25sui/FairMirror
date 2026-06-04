@@ -106,6 +106,10 @@ def test_custom_interview_audit_applies_four_fifths_rule():
     body = response.json()
     assert body["four_fifths_rule"] is False
     assert body["risk_level"] == "high"
+    metric_codes = {item["code"] for item in body["fairness_metrics"]}
+    assert "selection_rate" in metric_codes
+    assert "demographic_parity_difference" in metric_codes
+    assert body["calculation_notes"]
 
 
 def test_interview_demo_has_fairness_metrics():

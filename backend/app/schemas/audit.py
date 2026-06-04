@@ -120,6 +120,15 @@ class GroupMetric(BaseModel):
     average_question_depth: float
 
 
+class FairnessMetric(BaseModel):
+    code: str
+    label: str
+    value: float
+    threshold: str
+    status: Literal["pass", "warning", "fail"]
+    explanation: str
+
+
 class InterviewAuditResponse(BaseModel):
     audit_id: str
     batch_name: str
@@ -127,6 +136,8 @@ class InterviewAuditResponse(BaseModel):
     disparate_impact_ratio: float
     risk_level: Literal["high", "medium", "low"]
     metrics: list[GroupMetric]
+    fairness_metrics: list[FairnessMetric]
+    calculation_notes: list[str]
     explanations: list[ExplanationFactor]
     recommendations: list[str]
 

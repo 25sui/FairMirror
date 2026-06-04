@@ -14,6 +14,7 @@ from app.schemas.audit import (
     ComplianceReport,
     DashboardSummary,
     ExplanationFactor,
+    FairnessMetric,
     GroupMetric,
     InterviewAuditResponse,
     InterviewRecord,
@@ -140,6 +141,7 @@ def audit_interview(batch_name: str, records: list[InterviewRecord]) -> Intervie
     by_group: dict[str, list[InterviewRecord]] = defaultdict(list)
     for record in records:
         by_group[record.group].append(record)
+
     metrics: list[GroupMetric] = []
     for group, group_records in by_group.items():
         passed = sum(1 for item in group_records if item.passed)
@@ -153,10 +155,27 @@ def audit_interview(batch_name: str, records: list[InterviewRecord]) -> Intervie
                 average_question_depth=round(mean(item.question_depth for item in group_records), 1),
             )
         )
+
     rates = [metric.pass_rate for metric in metrics if metric.total]
-    ratio = round((min(rates) / max(rates)) if rates and max(rates) else 1, 3)
+    max_rate = max(rates) if rates else 0
+    min_rate = min(rates) if rates else 0
+    ratio = round((min_rate / max_rate) if max_rate else 1, 3)
+    demographic_parity_difference = round(max_rate - min_rate, 3)
+    average_score_gap = round(max((metric.average_score for metric in metrics), default=0) - min((metric.average_score for metric in metrics), default=0), 1)
+    question_depth_gap = round(max((metric.average_question_depth for metric in metrics), default=0) - min((metric.average_question_depth for metric in metrics), default=0), 1)
+    overall_selection_rate = round(sum(metric.passed for metric in metrics) / sum(metric.total for metric in metrics), 3) if metrics else 0
+
     passes_rule = ratio >= 0.8
-    risk_level = "low" if passes_rule else "high" if ratio < 0.6 else "medium"
+    risk_level = "low" if passes_rule and demographic_parity_difference <= 0.1 else "high" if ratio < 0.6 or demographic_parity_difference >= 0.35 else "medium"
+    fairness_metrics = _interview_fairness_metrics(
+        overall_selection_rate=overall_selection_rate,
+        disparate_impact_ratio=ratio,
+        demographic_parity_difference=demographic_parity_difference,
+        average_score_gap=average_score_gap,
+        question_depth_gap=question_depth_gap,
+    )
+    calculation_notes = _interview_calculation_notes(metrics, ratio, demographic_parity_difference)
+
     return InterviewAuditResponse(
         audit_id=f"interview-{uuid.uuid4().hex[:8]}",
         batch_name=batch_name,
@@ -164,12 +183,81 @@ def audit_interview(batch_name: str, records: list[InterviewRecord]) -> Intervie
         disparate_impact_ratio=ratio,
         risk_level=risk_level,
         metrics=metrics,
+        fairness_metrics=fairness_metrics,
+        calculation_notes=calculation_notes,
         explanations=[
-            ExplanationFactor(feature="群体通过率差异", direction="risk", impact=round(1 - ratio, 2), explanation="最低通过率群体与最高通过率群体差距触发差异影响审计。"),
-            ExplanationFactor(feature="追问深度", direction="risk", impact=0.31, explanation="不同群体获得的追问深度不一致，可能影响最终评分。"),
+            ExplanationFactor(feature="差异影响比", direction="risk", impact=round(1 - min(1, ratio), 2), explanation="最低通过率群体与最高通过率群体的比值越低，代表潜在不公平影响越高。"),
+            ExplanationFactor(feature="Demographic Parity Difference", direction="risk", impact=round(min(1, demographic_parity_difference), 2), explanation="不同群体通过率绝对差异越大，越需要人工复核。"),
+            ExplanationFactor(feature="追问深度差异", direction="risk", impact=round(min(1, question_depth_gap / 5), 2), explanation="不同群体获得的追问深度不一致，可能影响最终评分。"),
         ],
-        recommendations=["复核低通过率群体的评分样本", "统一面试追问策略与评分锚点", "对历史面试数据运行代理变量检测"],
+        recommendations=["复核低通过率群体的评分样本", "统一面试追问策略与评分锚点", "对历史面试数据运行代理变量检测", "在报告中保留指标计算口径和批次样本量"],
     )
+
+
+def _interview_fairness_metrics(
+    *,
+    overall_selection_rate: float,
+    disparate_impact_ratio: float,
+    demographic_parity_difference: float,
+    average_score_gap: float,
+    question_depth_gap: float,
+) -> list[FairnessMetric]:
+    return [
+        FairnessMetric(
+            code="selection_rate",
+            label="整体通过率",
+            value=overall_selection_rate,
+            threshold="仅作批次基线",
+            status="pass",
+            explanation="全部候选人的平均通过率，用于判断本批次筛选强度。",
+        ),
+        FairnessMetric(
+            code="disparate_impact_ratio",
+            label="差异影响比",
+            value=disparate_impact_ratio,
+            threshold=">= 0.8",
+            status="pass" if disparate_impact_ratio >= 0.8 else "fail" if disparate_impact_ratio < 0.6 else "warning",
+            explanation="最低群体通过率 / 最高群体通过率，低于 0.8 触发 4/5 法则复核。",
+        ),
+        FairnessMetric(
+            code="demographic_parity_difference",
+            label="人口统计均等差异",
+            value=demographic_parity_difference,
+            threshold="<= 0.1 建议通过，>= 0.35 高风险",
+            status="pass" if demographic_parity_difference <= 0.1 else "fail" if demographic_parity_difference >= 0.35 else "warning",
+            explanation="最高群体通过率 - 最低群体通过率，衡量群体机会差异。",
+        ),
+        FairnessMetric(
+            code="average_score_gap",
+            label="平均评分差异",
+            value=average_score_gap,
+            threshold="<= 8 分建议通过",
+            status="pass" if average_score_gap <= 8 else "warning" if average_score_gap <= 15 else "fail",
+            explanation="不同群体平均面试分差，用于辅助判断评分锚点是否一致。",
+        ),
+        FairnessMetric(
+            code="question_depth_gap",
+            label="追问深度差异",
+            value=question_depth_gap,
+            threshold="<= 1 建议通过",
+            status="pass" if question_depth_gap <= 1 else "warning" if question_depth_gap <= 2 else "fail",
+            explanation="不同群体平均追问深度差异，用于观察面试过程一致性。",
+        ),
+    ]
+
+
+def _interview_calculation_notes(metrics: list[GroupMetric], ratio: float, demographic_parity_difference: float) -> list[str]:
+    if not metrics:
+        return ["本批次没有可计算的面试记录。"]
+
+    highest = max(metrics, key=lambda item: item.pass_rate)
+    lowest = min(metrics, key=lambda item: item.pass_rate)
+    return [
+        f"最高通过率群体：{highest.group}，通过率 {highest.pass_rate}。",
+        f"最低通过率群体：{lowest.group}，通过率 {lowest.pass_rate}。",
+        f"差异影响比 = {lowest.pass_rate} / {highest.pass_rate} = {ratio}。",
+        f"人口统计均等差异 = {highest.pass_rate} - {lowest.pass_rate} = {demographic_parity_difference}。",
+    ]
 
 
 def compliance_report() -> ComplianceReport:

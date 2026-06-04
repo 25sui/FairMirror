@@ -47,6 +47,15 @@ export type InterviewRecord = {
   question_depth: number;
 };
 
+export type FairnessMetric = {
+  code: string;
+  label: string;
+  value: number;
+  threshold: string;
+  status: 'pass' | 'warning' | 'fail';
+  explanation: string;
+};
+
 export type InterviewAuditResponse = {
   audit_id: string;
   batch_name: string;
@@ -54,6 +63,8 @@ export type InterviewAuditResponse = {
   disparate_impact_ratio: number;
   risk_level: string;
   metrics: { group: string; total: number; passed: number; pass_rate: number; average_score: number; average_question_depth: number }[];
+  fairness_metrics: FairnessMetric[];
+  calculation_notes: string[];
   explanations: ExplanationFactor[];
   recommendations: string[];
 };

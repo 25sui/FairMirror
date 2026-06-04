@@ -57,6 +57,16 @@ function downloadCsvTemplate() {
   URL.revokeObjectURL(url);
 }
 
+function metricColor(status: string) {
+  if (status === 'pass') return 'green';
+  if (status === 'fail') return 'red';
+  return 'orange';
+}
+
+function metricPercent(value: number) {
+  return Math.round(Math.min(1, Math.max(0, value)) * 100);
+}
+
 export function InterviewMonitorPage() {
   const [result, setResult] = useState<InterviewAuditResponse>();
   const [uploading, setUploading] = useState(false);
@@ -120,6 +130,22 @@ export function InterviewMonitorPage() {
             </ResponsiveContainer>
           </Card>
         </Col>
+        <Col span={24}>
+          <Card className="glass-card" title="公平性指标">
+            <Row gutter={[14, 14]}>
+              {result.fairness_metrics.map((metric) => (
+                <Col xs={24} md={12} xl={8} key={metric.code}>
+                  <Card size="small" title={metric.label} extra={<Tag color={metricColor(metric.status)}>{metric.status}</Tag>}>
+                    <Statistic value={metric.value} precision={metric.value < 1 ? 3 : 1} />
+                    <Progress percent={metricPercent(metric.value)} showInfo={false} strokeColor={metric.status === 'fail' ? '#dc2626' : '#0f766e'} />
+                    <Typography.Text type="secondary">阈值：{metric.threshold}</Typography.Text>
+                    <Typography.Paragraph style={{ marginTop: 8, marginBottom: 0 }}>{metric.explanation}</Typography.Paragraph>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </Card>
+        </Col>
         <Col xs={24} lg={12}>
           <Card className="glass-card" title="影响因素">
             <List dataSource={result.explanations} renderItem={(item) => <List.Item><Space direction="vertical"><strong>{item.feature}</strong><Progress percent={Math.round(item.impact * 100)} strokeColor="#64748b" /><Typography.Text>{item.explanation}</Typography.Text></Space></List.Item>} />
@@ -128,6 +154,14 @@ export function InterviewMonitorPage() {
         <Col span={24}>
           <Card className="glass-card" title="批次明细">
             <Table rowKey="group" dataSource={result.metrics} pagination={false} columns={[{ title: '群体', dataIndex: 'group' }, { title: '样本数', dataIndex: 'total' }, { title: '通过数', dataIndex: 'passed' }, { title: '通过率', dataIndex: 'pass_rate' }, { title: '平均分', dataIndex: 'average_score' }, { title: '追问深度', dataIndex: 'average_question_depth' }]} />
+          </Card>
+        </Col>
+        <Col span={24}>
+          <Card className="glass-card" title="计算口径">
+            <List
+              dataSource={result.calculation_notes}
+              renderItem={(item) => <List.Item>{item}</List.Item>}
+            />
           </Card>
         </Col>
       </Row>
