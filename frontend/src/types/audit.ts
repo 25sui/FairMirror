@@ -39,6 +39,14 @@ export type ResumeAuditResponse = {
   explanations: ExplanationFactor[];
 };
 
+export type InterviewRecord = {
+  candidate_id: string;
+  group: string;
+  score: number;
+  passed: boolean;
+  question_depth: number;
+};
+
 export type InterviewAuditResponse = {
   audit_id: string;
   batch_name: string;

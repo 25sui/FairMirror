@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AuditJobSummary, AuditReportSummary, RoleProfile } from '../types/audit';
+import type { AuditJobSummary, AuditReportSummary, InterviewRecord, RoleProfile } from '../types/audit';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
@@ -13,6 +13,15 @@ export async function getDemo() {
   return data;
 }
 
+export async function extractDocument(file: File): Promise<{ filename: string; text: string; characters: number }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const { data } = await api.post('/documents/extract', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
 export async function auditJd(title: string, content: string) {
   const { data } = await api.post('/jd/audit', { title, content, role: 'hr' });
   return data;
@@ -20,6 +29,11 @@ export async function auditJd(title: string, content: string) {
 
 export async function auditResume(candidateName: string, content: string, targetRole: string) {
   const { data } = await api.post('/resume/audit', { candidate_name: candidateName, content, target_role: targetRole });
+  return data;
+}
+
+export async function auditInterview(batchName: string, records: InterviewRecord[]) {
+  const { data } = await api.post('/interview/audit', { batch_name: batchName, records });
   return data;
 }
 

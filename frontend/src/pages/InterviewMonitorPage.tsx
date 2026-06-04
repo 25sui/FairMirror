@@ -1,15 +1,89 @@
-import { Card, Col, List, Progress, Row, Space, Statistic, Table, Tag, Typography } from 'antd';
+import { Button, Card, Col, List, Progress, Row, Space, Statistic, Table, Tag, Typography, Upload, message } from 'antd';
+import type { UploadProps } from 'antd';
 import { useEffect, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { auditInterviewDemo } from '../services/api';
-import type { InterviewAuditResponse } from '../types/audit';
+import { auditInterview, auditInterviewDemo } from '../services/api';
+import type { InterviewAuditResponse, InterviewRecord } from '../types/audit';
+
+const CSV_COLUMNS = ['candidate_id', 'group', 'score', 'passed', 'question_depth'];
+const CSV_TEMPLATE = `${CSV_COLUMNS.join(',')}\nC001,多数群体,88,true,4\nC002,多数群体,76,true,3\nC003,保护群体,72,false,2\nC004,保护群体,69,false,1`;
+
+function parseCsvRows(text: string): InterviewRecord[] {
+  const lines = text
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    throw new Error('CSV 至少需要表头和一行数据');
+  }
+
+  const headers = lines[0].split(',').map((item) => item.trim());
+  const missingColumns = CSV_COLUMNS.filter((column) => !headers.includes(column));
+  if (missingColumns.length > 0) {
+    throw new Error(`CSV 缺少列：${missingColumns.join(', ')}`);
+  }
+
+  return lines.slice(1).map((line, index) => {
+    const values = line.split(',').map((item) => item.trim());
+    const row = Object.fromEntries(headers.map((header, headerIndex) => [header, values[headerIndex] ?? '']));
+    const score = Number(row.score);
+    const questionDepth = Number(row.question_depth);
+    const passed = ['true', '1', 'yes', '是', '通过'].includes(String(row.passed).toLowerCase());
+
+    if (!row.candidate_id || !row.group || Number.isNaN(score) || Number.isNaN(questionDepth)) {
+      throw new Error(`第 ${index + 2} 行数据不完整`);
+    }
+
+    return {
+      candidate_id: row.candidate_id,
+      group: row.group,
+      score,
+      passed,
+      question_depth: questionDepth,
+    };
+  });
+}
+
+function downloadCsvTemplate() {
+  const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'fairmirror-interview-template.csv';
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
 
 export function InterviewMonitorPage() {
   const [result, setResult] = useState<InterviewAuditResponse>();
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     auditInterviewDemo().then(setResult);
   }, []);
+
+  const uploadProps: UploadProps = {
+    accept: '.csv',
+    showUploadList: false,
+    beforeUpload: async (file) => {
+      setUploading(true);
+      try {
+        const text = await file.text();
+        const records = parseCsvRows(text);
+        const auditResult = await auditInterview(file.name.replace(/\.csv$/i, '') || '面试批次上传审计', records);
+        setResult(auditResult);
+        message.success(`已审计 ${records.length} 条面试记录`);
+      } catch (error) {
+        message.error(error instanceof Error ? error.message : 'CSV 解析失败');
+      } finally {
+        setUploading(false);
+      }
+      return false;
+    },
+  };
 
   if (!result) return <Card loading />;
 
@@ -21,7 +95,15 @@ export function InterviewMonitorPage() {
           <h1>面试监控</h1>
           <p>{result.batch_name} · 差异影响比 {result.disparate_impact_ratio}</p>
         </div>
-        <Statistic title="风险等级" value={result.risk_level} />
+        <Space direction="vertical" align="end">
+          <Statistic title="风险等级" value={result.risk_level} />
+          <Space>
+            <Button onClick={downloadCsvTemplate}>下载 CSV 模板</Button>
+            <Upload {...uploadProps}>
+              <Button type="primary" loading={uploading}>上传面试 CSV</Button>
+            </Upload>
+          </Space>
+        </Space>
       </section>
 
       <Row gutter={[18, 18]}>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.data.demo import SAMPLE_INTERVIEW_RECORDS, SAMPLE_JD, SAMPLE_RESUME
@@ -11,6 +11,7 @@ from app.services.audit_store import (
     list_audit_records,
     to_audit_job_summary,
 )
+from app.services.document_parser import extract_document_text
 from app.services.fairness_engine import (
     audit_interview,
     audit_jd,
@@ -57,6 +58,16 @@ def demo_payload() -> dict:
         "resume": SAMPLE_RESUME,
         "interview_records": SAMPLE_INTERVIEW_RECORDS,
     }
+
+
+@router.post("/documents/extract")
+async def extract_uploaded_document(file: UploadFile = File(...)):
+    content = await file.read()
+    try:
+        text = extract_document_text(file.filename or "upload.txt", content)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"filename": file.filename, "text": text, "characters": len(text)}
 
 
 @router.post("/jd/audit")

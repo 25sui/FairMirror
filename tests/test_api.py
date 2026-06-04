@@ -20,6 +20,18 @@ def test_health():
     assert response.json()["status"] == "ok"
 
 
+def test_document_extract_supports_text_upload():
+    response = client.post(
+        "/api/v1/documents/extract",
+        files={"file": ("jd.txt", "要求35岁以下，985/211优先。".encode("utf-8"), "text/plain")},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["filename"] == "jd.txt"
+    assert "35岁以下" in body["text"]
+    assert body["characters"] > 0
+
+
 def test_jd_audit_detects_age_bias():
     response = client.post(
         "/api/v1/jd/audit",

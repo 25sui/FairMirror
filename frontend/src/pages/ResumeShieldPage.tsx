@@ -1,7 +1,8 @@
-import { Button, Card, Col, List, Progress, Row, Space, Tag, Typography, Input } from 'antd';
+import { Button, Card, Col, List, Progress, Row, Space, Tag, Typography, Input, Upload, message } from 'antd';
+import type { UploadProps } from 'antd';
 import { useEffect, useState } from 'react';
 import { EvidenceText } from '../components/EvidenceText';
-import { auditResume, getDemo } from '../services/api';
+import { auditResume, extractDocument, getDemo } from '../services/api';
 import type { ResumeAuditResponse } from '../types/audit';
 
 const { TextArea } = Input;
@@ -9,16 +10,40 @@ const { TextArea } = Input;
 export function ResumeShieldPage() {
   const [content, setContent] = useState('');
   const [result, setResult] = useState<ResumeAuditResponse>();
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     getDemo().then((demo) => setContent(demo.resume));
   }, []);
 
+  const uploadProps: UploadProps = {
+    accept: '.txt,.md,.csv,.docx,.pdf',
+    showUploadList: false,
+    beforeUpload: async (file) => {
+      setUploading(true);
+      try {
+        const parsed = await extractDocument(file);
+        setContent(parsed.text);
+        message.success(`已读取 ${parsed.filename ?? file.name}，共 ${parsed.characters} 字符`);
+      } catch (error) {
+        message.error('文件解析失败，请确认格式或改用可复制文本文件');
+      } finally {
+        setUploading(false);
+      }
+      return false;
+    },
+  };
+
   return (
     <div className="page-stack">
       <Card className="glass-card" title="简历检查" extra={<Tag color="default">求职者</Tag>}>
-        <TextArea value={content} onChange={(event) => setContent(event.target.value)} rows={8} />
-        <Button className="primary-action" type="primary" onClick={() => auditResume('张敏', content, '增长产品经理').then(setResult)}>检查简历</Button>
+        <Space direction="vertical" size={12} style={{ width: '100%' }}>
+          <Upload {...uploadProps}>
+            <Button loading={uploading}>上传简历文件</Button>
+          </Upload>
+          <TextArea value={content} onChange={(event) => setContent(event.target.value)} rows={8} />
+          <Button className="primary-action" type="primary" onClick={() => auditResume('张敏', content, '增长产品经理').then(setResult)}>检查简历</Button>
+        </Space>
       </Card>
 
       {result && (
