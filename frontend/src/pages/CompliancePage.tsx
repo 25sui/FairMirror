@@ -12,6 +12,10 @@ function downloadReport(report: any) {
   URL.revokeObjectURL(url);
 }
 
+function exportPdf() {
+  window.print();
+}
+
 export function CompliancePage() {
   const [report, setReport] = useState<any>();
 
@@ -32,7 +36,16 @@ export function CompliancePage() {
         <Progress type="dashboard" percent={report.readiness_score} strokeColor="#0f766e" />
       </section>
 
-      <Card className="glass-card" title="检查清单" extra={<Button onClick={() => downloadReport(report)}>导出报告</Button>}>
+      <Card
+        className="glass-card compliance-report"
+        title="检查清单"
+        extra={
+          <Space>
+            <Button onClick={() => downloadReport(report)}>导出 JSON</Button>
+            <Button type="primary" onClick={exportPdf}>导出 PDF</Button>
+          </Space>
+        }
+      >
         <List
           dataSource={report.items}
           renderItem={(item: any) => (

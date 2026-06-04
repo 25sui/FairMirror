@@ -1,5 +1,6 @@
 import { Button, Card, Col, List, Progress, Row, Space, Tag, Typography, Input } from 'antd';
 import { useEffect, useState } from 'react';
+import { EvidenceText } from '../components/EvidenceText';
 import { auditJd, getDemo } from '../services/api';
 import type { JDAuditResponse } from '../types/audit';
 
@@ -44,8 +45,17 @@ export function JDAuditPage() {
             </Card>
           </Col>
           <Col span={24}>
-            <Card className="glass-card" title="修改后文本">
-              <Typography.Paragraph className="rewritten-box">{result.rewritten}</Typography.Paragraph>
+            <Card className="glass-card" title="证据对照">
+              <Row gutter={[18, 18]}>
+                <Col xs={24} lg={12}>
+                  <Typography.Title level={5}>原文命中</Typography.Title>
+                  <EvidenceText text={content} findings={result.findings} />
+                </Col>
+                <Col xs={24} lg={12}>
+                  <Typography.Title level={5}>整改版本</Typography.Title>
+                  <Typography.Paragraph className="rewritten-box">{result.rewritten}</Typography.Paragraph>
+                </Col>
+              </Row>
             </Card>
           </Col>
         </Row>

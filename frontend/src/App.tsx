@@ -28,17 +28,21 @@ const navItems = [
   { key: 'compliance', icon: <SafetyCertificateOutlined />, label: '合规报告' },
 ];
 
-const roleOptions: { value: string; label: string; defaultPage: PageKey }[] = [
-  { value: '企业管理员', label: '企业管理员', defaultPage: 'dashboard' },
-  { value: 'HR', label: 'HR', defaultPage: 'jd' },
-  { value: '求职者', label: '求职者', defaultPage: 'resume' },
-  { value: '审计员', label: '审计员', defaultPage: 'compliance' },
+const roleOptions: { value: string; label: string; defaultPage: PageKey; pages: PageKey[] }[] = [
+  { value: '企业管理员', label: '企业管理员', defaultPage: 'dashboard', pages: ['dashboard', 'jd', 'resume', 'interview', 'compliance'] },
+  { value: 'HR', label: 'HR', defaultPage: 'jd', pages: ['jd', 'interview', 'dashboard'] },
+  { value: '求职者', label: '求职者', defaultPage: 'resume', pages: ['resume'] },
+  { value: '审计员', label: '审计员', defaultPage: 'compliance', pages: ['compliance', 'dashboard', 'interview'] },
 ];
 
 function App() {
   const [page, setPage] = useState<PageKey>('dashboard');
   const [role, setRole] = useState('企业管理员');
-  const activeView = useMemo(() => pageMap[page], [page]);
+  const currentRole = roleOptions.find((item) => item.value === role) ?? roleOptions[0];
+  const allowedPages = currentRole.pages;
+  const visibleNavItems = navItems.filter((item) => allowedPages.includes(item.key as PageKey));
+  const activePage = allowedPages.includes(page) ? page : currentRole.defaultPage;
+  const activeView = useMemo(() => pageMap[activePage], [activePage]);
 
   const handleRoleChange = (value: string) => {
     setRole(value);
@@ -56,7 +60,7 @@ function App() {
             <span>招聘公平审计</span>
           </div>
         </div>
-        <Menu theme="dark" mode="inline" selectedKeys={[page]} items={navItems} onClick={({ key }) => setPage(key as PageKey)} />
+        <Menu theme="dark" mode="inline" selectedKeys={[activePage]} items={visibleNavItems} onClick={({ key }) => setPage(key as PageKey)} />
       </Sider>
       <Layout>
         <Header className="topbar">

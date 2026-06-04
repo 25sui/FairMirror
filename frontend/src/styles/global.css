@@ -87,7 +87,29 @@ body {
   border-radius: 16px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
+  min-height: 180px;
 }
+
+.evidence-text {
+  white-space: pre-wrap;
+  min-height: 180px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  line-height: 1.9;
+}
+
+.evidence-mark {
+  padding: 2px 5px;
+  border-radius: 7px;
+  color: #7c2d12;
+  font-weight: 700;
+}
+
+.evidence-mark.high { background: #fecaca; }
+.evidence-mark.medium { background: #fed7aa; }
+.evidence-mark.low { background: #fde68a; }
 
 .role-tile {
   min-height: 126px;
@@ -113,3 +135,33 @@ body {
 .ant-menu-item { border-radius: 12px !important; margin: 7px 0 !important; }
 .ant-menu-item-selected { background: rgba(15, 118, 110, 0.92) !important; }
 .ant-layout-sider-children { display: flex; flex-direction: column; }
+
+@media print {
+  body {
+    min-width: auto;
+    background: #ffffff;
+  }
+
+  .side-panel,
+  .topbar,
+  .ant-card-extra,
+  .ant-steps-icon {
+    display: none !important;
+  }
+
+  .content-canvas {
+    padding: 0;
+  }
+
+  .hero-panel,
+  .glass-card {
+    box-shadow: none;
+    border: 1px solid #d8dee8;
+    break-inside: avoid;
+  }
+
+  .app-shell,
+  .ant-layout {
+    background: #ffffff !important;
+  }
+}

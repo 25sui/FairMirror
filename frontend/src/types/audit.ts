@@ -3,6 +3,7 @@ export type BiasFinding = {
   level: 'high' | 'medium' | 'low';
   score: number;
   text: string;
+  position: [number, number];
   reason: string;
   suggestion: string;
   compliance: string;
