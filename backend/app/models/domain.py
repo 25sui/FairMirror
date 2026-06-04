@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+from typing import Optional
+
 from sqlalchemy import JSON, Float, ForeignKey, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -20,7 +23,7 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     email: Mapped[str] = mapped_column(String(160), unique=True, nullable=False)
     role: Mapped[str] = mapped_column(String(48), nullable=False)
-    organization_id: Mapped[str | None] = mapped_column(ForeignKey("organizations.id"))
+    organization_id: Mapped[Optional[str]] = mapped_column(ForeignKey("organizations.id"))
 
 
 class AuditJob(Base):
@@ -28,10 +31,18 @@ class AuditJob(Base):
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     kind: Mapped[str] = mapped_column(String(48), nullable=False)
+    title: Mapped[str] = mapped_column(String(180), nullable=False)
+    owner_role: Mapped[str] = mapped_column(String(48), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="completed")
     risk_score: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"))
-    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False)
+    input_payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    result_payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[str] = mapped_column(
+        String(40),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    )
     organization: Mapped[Organization] = relationship(back_populates="audits")
 
 

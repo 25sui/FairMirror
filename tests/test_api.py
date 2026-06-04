@@ -1,6 +1,15 @@
+import os
+
+os.environ["DATABASE_URL"] = "sqlite:///./fairmirror_test.db"
+
 from fastapi.testclient import TestClient
 
+from app.db.session import engine
+from app.models.domain import Base
 from app.main import app
+
+Base.metadata.drop_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
 
@@ -81,3 +90,21 @@ def test_report_summary_has_full_chain_coverage():
     assert "JD 智能审计" in body["coverage"]
     assert "AI 面试公平监控" in body["coverage"]
     assert body["key_findings"]
+
+
+def test_dashboard_and_jobs_use_persisted_audit_records():
+    before = client.get("/api/v1/dashboard/summary").json()["audits_completed"]
+    audit_response = client.post(
+        "/api/v1/jd/audit",
+        json={"title": "持久化测试岗位", "content": "要求35岁以下，本地户籍优先。", "role": "hr"},
+    )
+    assert audit_response.status_code == 200
+    audit_id = audit_response.json()["audit_id"]
+
+    dashboard = client.get("/api/v1/dashboard/summary").json()
+    assert dashboard["audits_completed"] == before + 1
+    assert dashboard["open_risks"] >= 1
+
+    jobs = client.get("/api/v1/audit-jobs").json()
+    assert jobs[0]["audit_id"] == audit_id
+    assert jobs[0]["title"] == "持久化测试岗位 JD 审计"

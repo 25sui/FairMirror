@@ -8,10 +8,7 @@ class Settings:
         "CORS_ORIGINS",
         "http://localhost:5173,http://127.0.0.1:5173",
     ).split(",")
-    database_url: str = os.getenv(
-        "DATABASE_URL",
-        "postgresql+psycopg://fairmirror:fairmirror@postgres:5432/fairmirror",
-    )
+    database_url: str = os.getenv("DATABASE_URL", "sqlite:///./fairmirror.db")
 
 
 settings = Settings()
