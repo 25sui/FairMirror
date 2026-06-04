@@ -128,6 +128,23 @@ body {
   margin-bottom: 14px;
 }
 
+.report-cover h1 {
+  font-size: 38px;
+}
+
+.report-section {
+  break-inside: avoid;
+}
+
+.signature-card {
+  min-height: 128px;
+  line-height: 2.2;
+}
+
+.signature-grid {
+  margin-bottom: 12px;
+}
+
 .ant-btn-primary { background: #0f766e; box-shadow: none; }
 .ant-btn-primary:hover { background: #115e59 !important; }
 .ant-progress .ant-progress-bg { background: #0f766e; }
@@ -145,6 +162,7 @@ body {
   .side-panel,
   .topbar,
   .ant-card-extra,
+  .report-actions,
   .ant-steps-icon {
     display: none !important;
   }
