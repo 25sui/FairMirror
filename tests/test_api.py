@@ -1,4 +1,6 @@
 import os
+import zipfile
+from io import BytesIO
 
 os.environ["DATABASE_URL"] = "sqlite:///./fairmirror_test.db"
 
@@ -7,11 +9,24 @@ from fastapi.testclient import TestClient
 from app.db.session import engine
 from app.models.domain import Base
 from app.main import app
+from app.services.document_parser import extract_document_text
 
 Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
+
+
+def _make_minimal_docx(text: str) -> bytes:
+    document_xml = f'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body><w:p><w:r><w:t>{text}</w:t></w:r></w:p></w:body>
+</w:document>'''
+    payload = BytesIO()
+    with zipfile.ZipFile(payload, "w") as docx:
+        docx.writestr("[Content_Types].xml", "")
+        docx.writestr("word/document.xml", document_xml)
+    return payload.getvalue()
 
 
 def test_health():
@@ -30,6 +45,19 @@ def test_document_extract_supports_text_upload():
     assert body["filename"] == "jd.txt"
     assert "35岁以下" in body["text"]
     assert body["characters"] > 0
+
+
+def test_document_parser_cleans_markdown_text():
+    text = extract_document_text("resume.md", "# 陈瑞\n![头像](photo.png)\n[邮箱](mailto:a@example.com)\n```python\nprint('skip')\n```".encode("utf-8"))
+    assert "陈瑞" in text
+    assert "邮箱" in text
+    assert "print" not in text
+
+
+def test_document_parser_extracts_docx_text_with_fallback():
+    text = extract_document_text("resume.docx", _make_minimal_docx("辽宁工程技术大学 数据科学与大数据技术"))
+    assert "辽宁工程技术大学" in text
+    assert "数据科学" in text
 
 
 def test_jd_audit_detects_age_bias():
