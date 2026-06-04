@@ -48,7 +48,7 @@ class BiasFinding(BaseModel):
     reason: str
     suggestion: str
     compliance: str
-    source: Literal["rule", "semantic_review"] = "rule"
+    source: Literal["rule", "semantic_review", "model"] = "rule"
     rule_id: Optional[str] = None
 
 
@@ -57,6 +57,52 @@ class ExplanationFactor(BaseModel):
     direction: Literal["risk", "protective"]
     impact: float = Field(ge=0, le=1)
     explanation: str
+
+
+class TokenContribution(BaseModel):
+    token: str
+    position: tuple[int, int]
+    label: str
+    contribution: float = Field(ge=0, le=1)
+    direction: Literal["risk", "protective"]
+
+
+class ModelAuditRequest(BaseModel):
+    scenario: Literal["jd", "resume"] = "jd"
+    content: str
+
+
+class ModelAuditResponse(BaseModel):
+    audit_id: str
+    scenario: Literal["jd", "resume"]
+    model_name: str
+    model_version: str
+    runtime_mode: Literal["transformers", "local_surrogate"]
+    status: str
+    risk_score: float = Field(ge=0, le=100)
+    findings: list[BiasFinding]
+    token_contributions: list[TokenContribution]
+    summary: str
+
+
+class DebiasingMetricRow(BaseModel):
+    metric: str
+    label: str
+    baseline: float
+    debiased: float
+    delta: float
+    interpretation: str
+
+
+class DebiasingDemoResponse(BaseModel):
+    demo_id: str
+    objective: str
+    sensitive_attribute: str
+    baseline: dict[str, float]
+    debiased: dict[str, float]
+    metrics: list[DebiasingMetricRow]
+    training_trace: list[dict]
+    sample_preview: list[dict]
 
 
 class JDAuditRequest(BaseModel):

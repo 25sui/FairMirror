@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AuditJobSummary, AuditReportSummary, InterviewRecord, RoleProfile } from '../types/audit';
+import type { AuditJobSummary, AuditReportSummary, DebiasingDemoResponse, InterviewRecord, ModelAuditResponse, RoleProfile } from '../types/audit';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
@@ -64,5 +64,15 @@ export async function getAuditJobs(): Promise<AuditJobSummary[]> {
 
 export async function getReportSummary(): Promise<AuditReportSummary> {
   const { data } = await api.get('/reports/summary');
+  return data;
+}
+
+export async function runModelAudit(content: string, scenario: 'jd' | 'resume' = 'jd'): Promise<ModelAuditResponse> {
+  const { data } = await api.post('/ai/model-audit', { content, scenario });
+  return data;
+}
+
+export async function getDebiasingDemo(): Promise<DebiasingDemoResponse> {
+  const { data } = await api.get('/ai/debiasing-demo');
   return data;
 }

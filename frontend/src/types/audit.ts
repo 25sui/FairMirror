@@ -7,7 +7,7 @@ export type BiasFinding = {
   reason: string;
   suggestion: string;
   compliance: string;
-  source: 'rule' | 'semantic_review';
+  source: 'rule' | 'semantic_review' | 'model';
   rule_id?: string;
 };
 
@@ -69,6 +69,49 @@ export type InterviewAuditResponse = {
   calculation_notes: string[];
   explanations: ExplanationFactor[];
   recommendations: string[];
+};
+
+export type ModelAuditResponse = {
+  audit_id: string;
+  scenario: 'jd' | 'resume';
+  model_name: string;
+  model_version: string;
+  runtime_mode: 'transformers' | 'local_surrogate';
+  status: string;
+  risk_score: number;
+  findings: BiasFinding[];
+  token_contributions: {
+    token: string;
+    position: [number, number];
+    label: string;
+    contribution: number;
+    direction: 'risk' | 'protective';
+  }[];
+  summary: string;
+};
+
+export type DebiasingDemoResponse = {
+  demo_id: string;
+  objective: string;
+  sensitive_attribute: string;
+  baseline: Record<string, number>;
+  debiased: Record<string, number>;
+  metrics: {
+    metric: string;
+    label: string;
+    baseline: number;
+    debiased: number;
+    delta: number;
+    interpretation: string;
+  }[];
+  training_trace: { epoch: number; predictor_loss: number; adversary_accuracy: number; fairness_penalty: number }[];
+  sample_preview: {
+    candidate_id: string;
+    protected_group: boolean;
+    qualified: boolean;
+    baseline_passed: boolean;
+    debiased_passed: boolean;
+  }[];
 };
 
 export type RoleProfile = {

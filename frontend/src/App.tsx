@@ -1,7 +1,8 @@
-import { AuditOutlined, DashboardOutlined, FileProtectOutlined, SafetyCertificateOutlined, TeamOutlined } from '@ant-design/icons';
+import { AuditOutlined, DashboardOutlined, ExperimentOutlined, FileProtectOutlined, SafetyCertificateOutlined, TeamOutlined } from '@ant-design/icons';
 import { Layout, Menu, Select, Tag } from 'antd';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
+import { AITechBarrierPage } from './pages/AITechBarrierPage';
 import { CompliancePage } from './pages/CompliancePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { InterviewMonitorPage } from './pages/InterviewMonitorPage';
@@ -10,13 +11,14 @@ import { ResumeShieldPage } from './pages/ResumeShieldPage';
 
 const { Header, Sider, Content } = Layout;
 
-type PageKey = 'dashboard' | 'jd' | 'resume' | 'interview' | 'compliance';
+type PageKey = 'dashboard' | 'jd' | 'resume' | 'interview' | 'ai' | 'compliance';
 
 const pageMap: Record<PageKey, ReactNode> = {
   dashboard: <DashboardPage />,
   jd: <JDAuditPage />,
   resume: <ResumeShieldPage />,
   interview: <InterviewMonitorPage />,
+  ai: <AITechBarrierPage />,
   compliance: <CompliancePage />,
 };
 
@@ -25,14 +27,15 @@ const navItems = [
   { key: 'jd', icon: <AuditOutlined />, label: '岗位审计' },
   { key: 'resume', icon: <FileProtectOutlined />, label: '简历检查' },
   { key: 'interview', icon: <TeamOutlined />, label: '面试监控' },
+  { key: 'ai', icon: <ExperimentOutlined />, label: '算法壁垒' },
   { key: 'compliance', icon: <SafetyCertificateOutlined />, label: '合规报告' },
 ];
 
 const roleOptions: { value: string; label: string; defaultPage: PageKey; pages: PageKey[] }[] = [
-  { value: '企业管理员', label: '企业管理员', defaultPage: 'dashboard', pages: ['dashboard', 'jd', 'resume', 'interview', 'compliance'] },
-  { value: 'HR', label: 'HR', defaultPage: 'jd', pages: ['jd', 'interview', 'dashboard'] },
+  { value: '企业管理员', label: '企业管理员', defaultPage: 'dashboard', pages: ['dashboard', 'jd', 'resume', 'interview', 'ai', 'compliance'] },
+  { value: 'HR', label: 'HR', defaultPage: 'jd', pages: ['jd', 'interview', 'ai', 'dashboard'] },
   { value: '求职者', label: '求职者', defaultPage: 'resume', pages: ['resume'] },
-  { value: '审计员', label: '审计员', defaultPage: 'compliance', pages: ['compliance', 'dashboard', 'interview'] },
+  { value: '审计员', label: '审计员', defaultPage: 'compliance', pages: ['compliance', 'dashboard', 'interview', 'ai'] },
 ];
 
 function App() {

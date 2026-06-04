@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.data.demo import SAMPLE_INTERVIEW_RECORDS, SAMPLE_JD, SAMPLE_RESUME
 from app.db.session import get_db
-from app.schemas.audit import InterviewAuditRequest, InterviewRecord, JDAuditRequest, ResumeAuditRequest
+from app.schemas.audit import InterviewAuditRequest, InterviewRecord, JDAuditRequest, ModelAuditRequest, ResumeAuditRequest
+from app.services.ai_barrier import debiasing_demo, model_audit
 from app.services.audit_store import (
     build_dashboard_summary,
     build_report_summary,
@@ -125,6 +126,16 @@ def run_demo_interview_audit():
 @router.get("/compliance/report")
 def get_compliance_report():
     return compliance_report()
+
+
+@router.post("/ai/model-audit")
+def run_model_audit(payload: ModelAuditRequest):
+    return model_audit(payload.content, payload.scenario)
+
+
+@router.get("/ai/debiasing-demo")
+def run_debiasing_demo():
+    return debiasing_demo()
 
 
 @router.get("/dashboard/summary")

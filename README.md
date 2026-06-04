@@ -40,6 +40,7 @@ npm run dev
 4. 进入“简历防御盾”，模拟 ATS 通过率，查看匿名化建议和改写版本。
 5. 进入“面试公平监控”，查看 4/5 法则、差异影响比和群体通过率。
 6. 进入“合规中心”，查看 EU AI Act 与中国 AI 伦理检查清单和整改路线图。
+7. 进入“算法壁垒”，查看 RoBERTa 适配层、Token 归因和对抗去偏前后指标。
 
 ## 核心接口
 
@@ -54,6 +55,8 @@ npm run dev
 - `GET /api/v1/compliance/report`：合规检查清单。
 - `GET /api/v1/dashboard/summary`：Dashboard 聚合指标。
 - `GET /api/v1/reports/summary`：全链路审计报告摘要。
+- `POST /api/v1/ai/model-audit`：RoBERTa 适配层文本审计与 Token 归因。
+- `GET /api/v1/ai/debiasing-demo`：对抗去偏训练演示指标。
 
 ## 验证命令
 

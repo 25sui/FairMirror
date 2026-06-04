@@ -138,6 +138,28 @@ def test_interview_demo_has_fairness_metrics():
     assert len(body["metrics"]) >= 3
 
 
+def test_model_audit_returns_model_source_and_attribution():
+    response = client.post(
+        "/api/v1/ai/model-audit",
+        json={"scenario": "jd", "content": "年轻团队，要求35岁以下，985/211优先。"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["runtime_mode"] in {"transformers", "local_surrogate"}
+    assert body["risk_score"] > 50
+    assert any(item["source"] == "model" for item in body["findings"])
+    assert any(item["token"] == "35岁以下" for item in body["token_contributions"])
+
+
+def test_debiasing_demo_improves_fairness_metrics():
+    response = client.get("/api/v1/ai/debiasing-demo")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["debiased"]["disparate_impact_ratio"] >= body["baseline"]["disparate_impact_ratio"]
+    assert body["debiased"]["selection_rate_gap"] <= body["baseline"]["selection_rate_gap"]
+    assert body["training_trace"]
+
+
 def test_roles_cover_four_personas():
     response = client.get("/api/v1/roles")
     assert response.status_code == 200
