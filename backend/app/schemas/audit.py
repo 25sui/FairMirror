@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -48,6 +48,8 @@ class BiasFinding(BaseModel):
     reason: str
     suggestion: str
     compliance: str
+    source: Literal["rule", "semantic_review"] = "rule"
+    rule_id: Optional[str] = None
 
 
 class ExplanationFactor(BaseModel):

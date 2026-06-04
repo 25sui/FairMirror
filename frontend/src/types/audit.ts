@@ -7,6 +7,8 @@ export type BiasFinding = {
   reason: string;
   suggestion: string;
   compliance: string;
+  source: 'rule' | 'semantic_review';
+  rule_id?: string;
 };
 
 export type ExplanationFactor = {

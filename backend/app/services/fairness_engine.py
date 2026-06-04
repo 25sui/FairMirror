@@ -24,26 +24,16 @@ from app.schemas.audit import (
     UserRole,
 )
 
+from app.services.rule_repository import rules_for, semantic_review_rules_for
+
 Rule = dict[str, object]
 
-JD_RULES: list[Rule] = [
-    {"pattern": "35岁以下|年轻化|年轻人", "type": "age", "level": "high", "score": 88, "reason": "年龄门槛会排除具备能力但年龄不匹配的候选人。", "suggestion": "改为说明岗位所需经验、体力或出差条件，避免直接年龄限制。", "compliance": "高风险招聘 AI 应避免年龄歧视与不可解释筛除。"},
-    {"pattern": "985|211|双一流|名校", "type": "education", "level": "medium", "score": 68, "reason": "院校标签可能成为能力以外的代理变量。", "suggestion": "改为列出必要知识、项目经验和能力证明方式。", "compliance": "招聘筛选条件应与岗位必要能力直接相关。"},
-    {"pattern": "狼性|抗压能力强|高强度加班|长期加班", "type": "workstyle", "level": "medium", "score": 64, "reason": "表达可能强化单一工作风格，影响照护者或特定群体机会。", "suggestion": "改为描述明确工作节奏、资源支持和绩效目标。", "compliance": "工作条件应透明且避免间接排斥。"},
-    {"pattern": "男性优先|女性优先|已婚已育|未婚", "type": "gender", "level": "high", "score": 92, "reason": "性别或婚育状态与岗位能力无直接关系。", "suggestion": "删除性别/婚育相关限制，改用能力与职责描述。", "compliance": "直接触发性别平等与就业公平风险。"},
-    {"pattern": "本地户籍|本地人|籍贯|外地人", "type": "region", "level": "medium", "score": 70, "reason": "地域信息可能造成与能力无关的机会差异。", "suggestion": "改为说明通勤、驻场或服务区域要求。", "compliance": "地域限制需证明与岗位履约必要性相关。"},
-]
+JD_RULES: list[Rule] = rules_for("jd")
 
-RESUME_RULES: list[Rule] = [
-    {"pattern": "照片|头像", "type": "appearance", "level": "medium", "score": 62, "reason": "照片可能引入外貌、年龄和性别判断。", "suggestion": "投递版本可移除照片，保留作品集或能力证明。", "compliance": "简历筛选应降低非能力变量影响。"},
-    {"pattern": "女|男|已婚|已育|未婚", "type": "gender", "level": "high", "score": 86, "reason": "性别与婚育状态容易触发不公平筛选。", "suggestion": "匿名化版本移除性别与婚育状态。", "compliance": "敏感属性不应作为自动筛选依据。"},
-    {"pattern": "籍|户籍|河南|东北|外地", "type": "region", "level": "medium", "score": 66, "reason": "籍贯可能成为地域歧视代理变量。", "suggestion": "保留工作地点偏好即可，不展示籍贯。", "compliance": "候选人画像应限制敏感属性采集。"},
-    {"pattern": "空窗|间隔|待业", "type": "proxy", "level": "medium", "score": 58, "reason": "职业空窗可能被系统误判为能力下降。", "suggestion": "补充空窗期间学习、照护、项目或证书产出。", "compliance": "自动化评估应允许候选人补充解释。"},
-    {"pattern": r"32岁|35岁|年龄|\d{4}年毕业", "type": "age", "level": "medium", "score": 60, "reason": "年龄与毕业年份可能成为年龄代理变量。", "suggestion": "突出年限、技能栈和成果，弱化年龄标识。", "compliance": "代理变量也需要纳入公平性审计。"},
-]
+RESUME_RULES: list[Rule] = rules_for("resume")
 
 
-def _findings(text: str, rules: list[Rule]) -> list[BiasFinding]:
+def _findings(text: str, rules: list[Rule], source: str = "rule") -> list[BiasFinding]:
     findings: list[BiasFinding] = []
     for rule in rules:
         for match in re.finditer(str(rule["pattern"]), text, flags=re.IGNORECASE):
@@ -57,9 +47,25 @@ def _findings(text: str, rules: list[Rule]) -> list[BiasFinding]:
                     reason=str(rule["reason"]),
                     suggestion=str(rule["suggestion"]),
                     compliance=str(rule["compliance"]),
+                    source=source,
+                    rule_id=str(rule.get("id", "")) or None,
                 )
             )
     return findings
+
+
+def _combined_findings(kind: str, text: str) -> list[BiasFinding]:
+    primary_findings = _findings(text, rules_for(kind), source="rule")
+    semantic_findings = _findings(text, semantic_review_rules_for(kind), source="semantic_review")
+    seen: set[tuple[str, tuple[int, int], str]] = set()
+    combined: list[BiasFinding] = []
+    for finding in [*primary_findings, *semantic_findings]:
+        key = (finding.type, finding.position, finding.text)
+        if key in seen:
+            continue
+        seen.add(key)
+        combined.append(finding)
+    return combined
 
 
 def _risk_score(findings: list[BiasFinding]) -> float:
@@ -88,7 +94,7 @@ def _explanations(findings: list[BiasFinding]) -> list[ExplanationFactor]:
 
 
 def audit_jd(title: str, content: str) -> JDAuditResponse:
-    findings = _findings(content, JD_RULES)
+    findings = _combined_findings("jd", content)
     risk = _risk_score(findings)
     rewritten = content
     replacements = {
@@ -115,7 +121,7 @@ def audit_jd(title: str, content: str) -> JDAuditResponse:
 
 
 def audit_resume(candidate_name: str, content: str, target_role: str) -> ResumeAuditResponse:
-    findings = _findings(content, RESUME_RULES)
+    findings = _combined_findings("resume", content)
     risk = _risk_score(findings)
     ats_scores = [
         AtsScore(system="Keyword ATS", pass_rate=max(30, 86 - risk * 0.34), reason="关键词匹配较好，但敏感信息会降低推荐稳定性。"),

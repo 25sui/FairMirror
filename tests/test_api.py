@@ -10,6 +10,7 @@ from app.db.session import engine
 from app.models.domain import Base
 from app.main import app
 from app.services.document_parser import extract_document_text
+from app.services.rule_repository import rules_for, semantic_review_rules_for
 
 Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
@@ -58,6 +59,23 @@ def test_document_parser_extracts_docx_text_with_fallback():
     text = extract_document_text("resume.docx", _make_minimal_docx("辽宁工程技术大学 数据科学与大数据技术"))
     assert "辽宁工程技术大学" in text
     assert "数据科学" in text
+
+
+def test_rule_repository_loads_configured_rules():
+    assert any(rule["id"] == "jd-age-direct" for rule in rules_for("jd"))
+    assert any(rule["id"] == "semantic-jd-age-proxy-energy" for rule in semantic_review_rules_for("jd"))
+
+
+def test_jd_audit_detects_semantic_proxy_bias():
+    response = client.post(
+        "/api/v1/jd/audit",
+        json={"title": "测试岗位", "content": "我们是年轻团队，希望候选人精力充沛，毕业不超过3年。", "role": "hr"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert any(item["type"] == "age" for item in body["findings"])
+    assert any(item["source"] == "semantic_review" for item in body["findings"])
+    assert body["risk_score"] > 50
 
 
 def test_jd_audit_detects_age_bias():

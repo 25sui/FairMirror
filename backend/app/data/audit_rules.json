@@ -1,0 +1,162 @@
+{
+  "jd": [
+    {
+      "id": "jd-age-direct",
+      "pattern": "35岁以下|年轻化|年轻人",
+      "type": "age",
+      "level": "high",
+      "score": 88,
+      "reason": "年龄门槛会排除具备能力但年龄不匹配的候选人。",
+      "suggestion": "改为说明岗位所需经验、体力或出差条件，避免直接年龄限制。",
+      "compliance": "高风险招聘 AI 应避免年龄歧视与不可解释筛除。"
+    },
+    {
+      "id": "jd-education-elite-school",
+      "pattern": "985|211|双一流|名校",
+      "type": "education",
+      "level": "medium",
+      "score": 68,
+      "reason": "院校标签可能成为能力以外的代理变量。",
+      "suggestion": "改为列出必要知识、项目经验和能力证明方式。",
+      "compliance": "招聘筛选条件应与岗位必要能力直接相关。"
+    },
+    {
+      "id": "jd-workstyle-overload",
+      "pattern": "狼性|抗压能力强|高强度加班|长期加班",
+      "type": "workstyle",
+      "level": "medium",
+      "score": 64,
+      "reason": "表达可能强化单一工作风格，影响照护者或特定群体机会。",
+      "suggestion": "改为描述明确工作节奏、资源支持和绩效目标。",
+      "compliance": "工作条件应透明且避免间接排斥。"
+    },
+    {
+      "id": "jd-gender-marriage",
+      "pattern": "男性优先|女性优先|已婚已育|未婚",
+      "type": "gender",
+      "level": "high",
+      "score": 92,
+      "reason": "性别或婚育状态与岗位能力无直接关系。",
+      "suggestion": "删除性别/婚育相关限制，改用能力与职责描述。",
+      "compliance": "直接触发性别平等与就业公平风险。"
+    },
+    {
+      "id": "jd-region-household",
+      "pattern": "本地户籍|本地人|籍贯|外地人",
+      "type": "region",
+      "level": "medium",
+      "score": 70,
+      "reason": "地域信息可能造成与能力无关的机会差异。",
+      "suggestion": "改为说明通勤、驻场或服务区域要求。",
+      "compliance": "地域限制需证明与岗位履约必要性相关。"
+    }
+  ],
+  "resume": [
+    {
+      "id": "resume-appearance-photo",
+      "pattern": "照片|头像",
+      "type": "appearance",
+      "level": "medium",
+      "score": 62,
+      "reason": "照片可能引入外貌、年龄和性别判断。",
+      "suggestion": "投递版本可移除照片，保留作品集或能力证明。",
+      "compliance": "简历筛选应降低非能力变量影响。"
+    },
+    {
+      "id": "resume-gender-marriage",
+      "pattern": "女|男|已婚|已育|未婚",
+      "type": "gender",
+      "level": "high",
+      "score": 86,
+      "reason": "性别与婚育状态容易触发不公平筛选。",
+      "suggestion": "匿名化版本移除性别与婚育状态。",
+      "compliance": "敏感属性不应作为自动筛选依据。"
+    },
+    {
+      "id": "resume-region-origin",
+      "pattern": "籍|户籍|河南|东北|外地",
+      "type": "region",
+      "level": "medium",
+      "score": 66,
+      "reason": "籍贯可能成为地域歧视代理变量。",
+      "suggestion": "保留工作地点偏好即可，不展示籍贯。",
+      "compliance": "候选人画像应限制敏感属性采集。"
+    },
+    {
+      "id": "resume-career-gap",
+      "pattern": "空窗|间隔|待业",
+      "type": "proxy",
+      "level": "medium",
+      "score": 58,
+      "reason": "职业空窗可能被系统误判为能力下降。",
+      "suggestion": "补充空窗期间学习、照护、项目或证书产出。",
+      "compliance": "自动化评估应允许候选人补充解释。"
+    },
+    {
+      "id": "resume-age-proxy",
+      "pattern": "32岁|35岁|年龄|\\d{4}年毕业",
+      "type": "age",
+      "level": "medium",
+      "score": 60,
+      "reason": "年龄与毕业年份可能成为年龄代理变量。",
+      "suggestion": "突出年限、技能栈和成果，弱化年龄标识。",
+      "compliance": "代理变量也需要纳入公平性审计。"
+    }
+  ],
+  "semantic_review": {
+    "jd": [
+      {
+        "id": "semantic-jd-age-proxy-energy",
+        "pattern": "精力充沛|年轻团队|90后|95后|毕业不超过[一二三四五六七八九十0-9]+年",
+        "type": "age",
+        "level": "medium",
+        "score": 72,
+        "reason": "该表达没有直接写年龄门槛，但可能通过精力、团队年龄或毕业年限形成年龄代理筛选。",
+        "suggestion": "改为描述岗位强度、工作节奏和必要经验，不使用年龄或毕业年限暗示。",
+        "compliance": "代理变量也应纳入招聘公平审计。"
+      },
+      {
+        "id": "semantic-jd-gender-care-duty",
+        "pattern": "稳定性强|无家庭负担|能全身心投入|短期无生育计划",
+        "type": "gender",
+        "level": "high",
+        "score": 84,
+        "reason": "该表达可能把婚育、照护责任或家庭状态转化为隐性筛选条件。",
+        "suggestion": "改为说明岗位的时间安排、值班机制和交付目标，并提供合理支持。",
+        "compliance": "招聘筛选不得以婚育或家庭责任作为机会分配依据。"
+      },
+      {
+        "id": "semantic-jd-education-proxy-background",
+        "pattern": "学习能力强优先|背景优秀|第一学历|统招本科",
+        "type": "education",
+        "level": "medium",
+        "score": 70,
+        "reason": "该表达可能把学历背景作为能力代理变量，削弱真实项目经验的权重。",
+        "suggestion": "改为列出可验证技能、作品、项目复杂度和交付结果。",
+        "compliance": "筛选条件应与岗位能力直接相关。"
+      }
+    ],
+    "resume": [
+      {
+        "id": "semantic-resume-age-proxy-timeline",
+        "pattern": "毕业于20[0-9]{2}年|20[0-9]{2}年出生|应届生|往届生",
+        "type": "age",
+        "level": "medium",
+        "score": 62,
+        "reason": "毕业年份、出生年份或应往届身份可能成为年龄代理变量。",
+        "suggestion": "保留经验年限、技能和项目成果，弱化年龄可推断信息。",
+        "compliance": "候选人画像应减少非必要代理变量。"
+      },
+      {
+        "id": "semantic-resume-family-duty",
+        "pattern": "照顾家庭|育儿|备孕|陪读|家庭原因",
+        "type": "proxy",
+        "level": "medium",
+        "score": 64,
+        "reason": "家庭责任相关描述可能被自动筛选系统误判为稳定性或投入度风险。",
+        "suggestion": "改写为阶段性安排和能力保持情况，突出可验证产出。",
+        "compliance": "自动化评估应允许候选人对经历进行补充解释。"
+      }
+    ]
+  }
+}
