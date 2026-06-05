@@ -1,0 +1,31 @@
+{
+  "source_file": "docs/AI大赛脱敏数据.xlsx",
+  "derived_files": {
+    "jd": "demo-data/fairmirror-jd-samples.json",
+    "resume": "demo-data/fairmirror-resume-samples.json"
+  },
+  "sample_counts": {
+    "jd": 20,
+    "resume": 20,
+    "total": 40
+  },
+  "jd_risk_tag_distribution": {
+    "age": 10,
+    "education": 20,
+    "gender_marriage": 1,
+    "region": 19,
+    "workstyle": 10
+  },
+  "resume_risk_tag_distribution": {
+    "age": 20,
+    "education": 20,
+    "gender_marriage": 11,
+    "region": 20,
+    "workstyle": 11
+  },
+  "evidence_summary": [
+    "保留前三条人工精选样本，保证前端演示稳定。",
+    "追加从比赛脱敏 Excel 底层 XML 自动抽取的样本，增强真实数据支撑。",
+    "统计结果用于 PPT、演示视频和合规报告中的真实样本验证说明。"
+  ]
+}

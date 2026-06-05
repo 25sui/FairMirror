@@ -88,11 +88,13 @@ npm run build
 - `ai/`：RoBERTa-wwm-ext 与对抗去偏接入骨架。
 - `infra/postgres/init.sql`：PostgreSQL 初始化结构和演示账号。
 - `demo-data/fairmirror-demo.json`：演示输入与合规样例。
-- `demo-data/fairmirror-jd-samples.json`：由比赛脱敏数据派生的岗位样本。
-- `demo-data/fairmirror-resume-samples.json`：由比赛脱敏数据派生的简历样本。
+- `demo-data/fairmirror-jd-samples.json`：由比赛脱敏数据派生的岗位样本，当前保留精选样本并扩展至 20 条。
+- `demo-data/fairmirror-resume-samples.json`：由比赛脱敏数据派生的简历样本，当前保留精选样本并扩展至 20 条。
+- `demo-data/fairmirror-competition-sample-stats.json`：比赛脱敏样本验证统计，包含风险标签分布和证据摘要。
 - `scripts/extract_competition_samples.py`：比赛脱敏 Excel 只读转换脚本。
 - `docs/sample-compliance-report.md`：合规报告样例。
-- `docs/demo-script.md`：5 分钟演示脚本。
+- `docs/demo-script.md`：官网适配版 3-5 分钟演示脚本。
+- `docs/official-demo-video-script.md`：产品 Demo 提交视频脚本和镜头清单。
 - `docs/pitch-notes.md`：参赛路讲稿要点。
 
 ## 技术边界

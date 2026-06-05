@@ -11,6 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_XLSX = ROOT / "docs" / "AI大赛脱敏数据.xlsx"
 JD_OUTPUT = ROOT / "demo-data" / "fairmirror-jd-samples.json"
 RESUME_OUTPUT = ROOT / "demo-data" / "fairmirror-resume-samples.json"
+STATS_OUTPUT = ROOT / "demo-data" / "fairmirror-competition-sample-stats.json"
+
+MAX_JD_SAMPLES = 20
+MAX_RESUME_SAMPLES = 20
+CURATED_SAMPLE_COUNT = 3
 
 NS = {"s": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
 
@@ -186,6 +191,70 @@ def _resume_samples(records: List[Dict[str, str]]) -> List[Dict[str, Any]]:
     return samples
 
 
+def _load_existing_samples(path: Path) -> List[Dict[str, Any]]:
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    return [item for item in data if isinstance(item, dict)]
+
+
+def _merge_with_curated(existing: List[Dict[str, Any]], generated: List[Dict[str, Any]], limit: int) -> List[Dict[str, Any]]:
+    curated = existing[:CURATED_SAMPLE_COUNT]
+    seen = {_compact(item.get("content", "")) for item in curated}
+    merged = list(curated)
+    for item in generated:
+        content_key = _compact(item.get("content", ""))
+        if not content_key or content_key in seen:
+            continue
+        seen.add(content_key)
+        item = dict(item)
+        item["sample_id"] = f"{item['sample_id']}-auto"
+        merged.append(item)
+        if len(merged) >= limit:
+            break
+    for index, item in enumerate(merged, start=1):
+        prefix = "competition-jd" if item.get("title") else "competition-resume"
+        if "resume" in str(item.get("sample_id", "")):
+            prefix = "competition-resume"
+        item["sample_id"] = f"{prefix}-{index:03d}"
+    return merged
+
+
+def _tag_distribution(samples: List[Dict[str, Any]]) -> Dict[str, int]:
+    distribution: Dict[str, int] = {}
+    for sample in samples:
+        for tag in sample.get("risk_tags", []):
+            distribution[tag] = distribution.get(tag, 0) + 1
+    return dict(sorted(distribution.items(), key=lambda item: item[0]))
+
+
+def _sample_stats(jd_samples: List[Dict[str, Any]], resume_samples: List[Dict[str, Any]]) -> Dict[str, Any]:
+    return {
+        "source_file": "docs/AI大赛脱敏数据.xlsx",
+        "derived_files": {
+            "jd": "demo-data/fairmirror-jd-samples.json",
+            "resume": "demo-data/fairmirror-resume-samples.json",
+        },
+        "sample_counts": {
+            "jd": len(jd_samples),
+            "resume": len(resume_samples),
+            "total": len(jd_samples) + len(resume_samples),
+        },
+        "jd_risk_tag_distribution": _tag_distribution(jd_samples),
+        "resume_risk_tag_distribution": _tag_distribution(resume_samples),
+        "evidence_summary": [
+            "保留前三条人工精选样本，保证前端演示稳定。",
+            "追加从比赛脱敏 Excel 底层 XML 自动抽取的样本，增强真实数据支撑。",
+            "统计结果用于 PPT、演示视频和合规报告中的真实样本验证说明。",
+        ],
+    }
+
+
 def main() -> None:
     with zipfile.ZipFile(SOURCE_XLSX) as book:
         shared_strings = _load_shared_strings(book)
@@ -195,13 +264,19 @@ def main() -> None:
     jd_records = _rows_as_records(jd_rows, "职位名称")
     resume_records = _rows_as_records(resume_rows, "简历质量")
 
-    jd_samples = _jd_samples(jd_records)
-    resume_samples = _resume_samples(resume_records)
+    generated_jd_samples = _jd_samples(jd_records)
+    generated_resume_samples = _resume_samples(resume_records)
+    existing_jd_samples = _load_existing_samples(JD_OUTPUT)
+    existing_resume_samples = _load_existing_samples(RESUME_OUTPUT)
+
+    jd_samples = _merge_with_curated(existing_jd_samples, generated_jd_samples, MAX_JD_SAMPLES)
+    resume_samples = _merge_with_curated(existing_resume_samples, generated_resume_samples, MAX_RESUME_SAMPLES)
 
     JD_OUTPUT.write_text(json.dumps(jd_samples, ensure_ascii=False, indent=2), encoding="utf-8")
     RESUME_OUTPUT.write_text(json.dumps(resume_samples, ensure_ascii=False, indent=2), encoding="utf-8")
+    STATS_OUTPUT.write_text(json.dumps(_sample_stats(jd_samples, resume_samples), ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(json.dumps({"jd_samples": len(jd_samples), "resume_samples": len(resume_samples)}, ensure_ascii=False))
+    print(json.dumps({"jd_samples": len(jd_samples), "resume_samples": len(resume_samples), "stats_file": str(STATS_OUTPUT.relative_to(ROOT))}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

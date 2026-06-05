@@ -47,6 +47,9 @@ def test_demo_payload_includes_competition_sample_container():
     assert body["competition_samples"]["source_file"] == "docs/AI大赛脱敏数据.xlsx"
     assert "jd_count" in body["competition_samples"]["stats"]
     assert "resume_count" in body["competition_samples"]["stats"]
+    assert body["competition_samples"]["stats"]["total"] >= 40
+    assert body["competition_samples"]["risk_tag_distribution"]
+    assert body["competition_samples"]["evidence_summary"]
 
 
 def test_competition_sample_loader_falls_back_when_missing(monkeypatch, tmp_path):

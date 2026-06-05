@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 ROOT = Path(__file__).resolve().parents[3]
 JD_SAMPLE_FILE = ROOT / "demo-data" / "fairmirror-jd-samples.json"
 RESUME_SAMPLE_FILE = ROOT / "demo-data" / "fairmirror-resume-samples.json"
+STATS_SAMPLE_FILE = ROOT / "demo-data" / "fairmirror-competition-sample-stats.json"
 
 
 SAMPLE_JD = """高级增长产品经理
@@ -38,16 +39,45 @@ def _load_json_samples(path: Path) -> List[Dict[str, Any]]:
     return [item for item in data if isinstance(item, dict)]
 
 
+def _load_json_object(path: Path) -> Dict[str, Any]:
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return data
+
+
 def competition_samples() -> Dict[str, Any]:
     jd_samples = _load_json_samples(JD_SAMPLE_FILE)
     resume_samples = _load_json_samples(RESUME_SAMPLE_FILE)
+    sample_stats = _load_json_object(STATS_SAMPLE_FILE) if jd_samples or resume_samples else {}
+    sample_counts = sample_stats.get("sample_counts") if isinstance(sample_stats.get("sample_counts"), dict) else {}
+    stats = {"jd_count": len(jd_samples), "resume_count": len(resume_samples)}
+    if jd_samples or resume_samples:
+        stats = {
+            **stats,
+            "total": len(jd_samples) + len(resume_samples),
+            "source_file": sample_stats.get("source_file", "docs/AI大赛脱敏数据.xlsx"),
+            "derived_files": sample_stats.get("derived_files", {}),
+            "sample_counts": sample_counts,
+        }
     return {
         "source_file": "docs/AI大赛脱敏数据.xlsx",
         "derived_files": {
             "jd": "demo-data/fairmirror-jd-samples.json",
             "resume": "demo-data/fairmirror-resume-samples.json",
+            "stats": "demo-data/fairmirror-competition-sample-stats.json",
         },
         "jd": jd_samples,
         "resume": resume_samples,
-        "stats": {"jd_count": len(jd_samples), "resume_count": len(resume_samples)},
+        "stats": stats,
+        "risk_tag_distribution": {
+            "jd": sample_stats.get("jd_risk_tag_distribution", {}),
+            "resume": sample_stats.get("resume_risk_tag_distribution", {}),
+        },
+        "evidence_summary": sample_stats.get("evidence_summary", []),
     }
