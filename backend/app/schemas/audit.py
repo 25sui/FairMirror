@@ -40,7 +40,7 @@ class AuditReportSummary(BaseModel):
 
 
 class BiasFinding(BaseModel):
-    type: Literal["gender", "age", "education", "region", "appearance", "proxy", "workstyle"]
+    type: Literal["gender", "age", "education", "region", "appearance", "proxy", "workstyle", "identity"]
     level: Literal["high", "medium", "low"]
     score: float = Field(ge=0, le=100)
     text: str

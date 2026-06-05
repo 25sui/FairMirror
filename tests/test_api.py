@@ -81,6 +81,35 @@ def test_competition_jd_samples_trigger_expected_rule_audits():
         assert body["rewritten"] != sample["content"]
 
 
+def test_competition_resume_samples_trigger_sensitive_info_audits():
+    samples = {sample["sample_id"]: sample for sample in demo_data.competition_samples()["resume"]}
+    expected_types = {
+        "competition-resume-001": {"identity", "gender", "age", "education", "region", "proxy"},
+        "competition-resume-002": {"identity", "gender", "age", "education", "region", "proxy"},
+        "competition-resume-003": {"identity", "gender", "age", "education", "region", "proxy"},
+    }
+    assert expected_types.keys() <= samples.keys()
+
+    for sample_id, required_types in expected_types.items():
+        sample = samples[sample_id]
+        response = client.post(
+            "/api/v1/resume/audit",
+            json={
+                "candidate_name": sample["candidate_name"],
+                "target_role": sample["target_role"],
+                "content": sample["content"],
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        finding_types = {item["type"] for item in body["findings"]}
+        assert required_types <= finding_types
+        assert body["risk_score"] > 55
+        assert body["rewritten"] != sample["content"]
+        assert "已脱敏" in body["rewritten"]
+        assert sample["candidate_name"] not in body["rewritten"]
+
+
 def test_document_extract_supports_text_upload():
     response = client.post(
         "/api/v1/documents/extract",

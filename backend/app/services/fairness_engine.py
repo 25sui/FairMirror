@@ -135,6 +135,30 @@ def audit_jd(title: str, content: str) -> JDAuditResponse:
     )
 
 
+def _anonymize_resume_content(content: str, target_role: str) -> str:
+    rewritten = content
+    field_replacements = [
+        (r"姓名[:：][^\n，,；;]+", "候选人编号：FM-CANDIDATE"),
+        (r"性别[:：][^\n，,；;]+", "性别：已脱敏"),
+        (r"年龄[:：][^\n，,；;]+", "年龄：已脱敏"),
+        (r"现居地址[:：][^\n，,；;]+", "现居地址：已脱敏，仅保留可通勤/可到岗信息"),
+        (r"籍贯[:：][^\n，,；;]+", "籍贯：已脱敏"),
+        (r"户籍[:：][^\n，,；;]+", "户籍：已脱敏"),
+        (r"求职状态[:：][^\n，,；;]+", "到岗安排：可按岗位流程沟通"),
+        (r"最高学历[:：][^\n，,；;]+", "能力背景：保留与岗位相关的技能、证书和项目证据"),
+    ]
+    for pattern, replacement in field_replacements:
+        rewritten = re.sub(pattern, replacement, rewritten)
+
+    rewritten = re.sub("张敏|候选人[A-Z]|已婚已育|已婚|已育|未婚|河南籍|照片|头像|32岁", "", rewritten)
+    rewritten = rewritten.replace("曾因家庭原因有2年职业空窗期", "阶段性完成数据分析课程与增长项目复盘，保持专业能力更新")
+    rewritten = re.sub(r"\n{3,}", "\n\n", rewritten)
+    rewritten = re.sub(r"[ \t]{2,}", " ", rewritten)
+    if target_role and target_role not in rewritten:
+        rewritten = f"目标岗位：{target_role}\n{rewritten}"
+    return rewritten.strip()
+
+
 def audit_resume(candidate_name: str, content: str, target_role: str) -> ResumeAuditResponse:
     findings = _combined_findings("resume", content)
     risk = _risk_score(findings)
@@ -144,8 +168,7 @@ def audit_resume(candidate_name: str, content: str, target_role: str) -> ResumeA
         AtsScore(system="LLM Screener", pass_rate=max(35, 82 - risk * 0.28), reason="大模型能理解项目成果，但仍可能受代理变量影响。"),
         AtsScore(system="Campus ATS", pass_rate=max(20, 70 - risk * 0.38), reason="院校与毕业年份权重较高，建议突出能力证据。"),
     ]
-    rewritten = re.sub("张敏|男|女|已婚已育|已婚|未婚|河南籍|照片|32岁", "", content)
-    rewritten = rewritten.replace("曾因家庭原因有2年职业空窗期", "阶段性完成数据分析课程与增长项目复盘，保持专业能力更新")
+    rewritten = _anonymize_resume_content(content, target_role)
     return ResumeAuditResponse(
         audit_id=f"resume-{uuid.uuid4().hex[:8]}",
         candidate_name=candidate_name,

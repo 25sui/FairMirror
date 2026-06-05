@@ -63,6 +63,16 @@
   ],
   "resume": [
     {
+      "id": "resume-identity-name",
+      "pattern": "姓名[:：][^\\n，,；;]+|候选人[A-Z]",
+      "type": "identity",
+      "level": "medium",
+      "score": 64,
+      "reason": "姓名会直接暴露个人身份，容易和性别、年龄、地域等外部信息发生关联。",
+      "suggestion": "评审或初筛版本使用候选人编号，保留能力、经历和项目证据。",
+      "compliance": "简历初筛应遵循最小必要原则，降低可识别身份信息暴露。"
+    },
+    {
       "id": "resume-appearance-photo",
       "pattern": "照片|头像",
       "type": "appearance",
@@ -74,7 +84,7 @@
     },
     {
       "id": "resume-gender-marriage",
-      "pattern": "女|男|已婚|已育|未婚",
+      "pattern": "性别[:：]?[男女]|婚育|已婚|已育|未婚|\\b女\\b|\\b男\\b",
       "type": "gender",
       "level": "high",
       "score": 86,
@@ -84,13 +94,33 @@
     },
     {
       "id": "resume-region-origin",
-      "pattern": "籍|户籍|河南|东北|外地",
+      "pattern": "现居地址[:：][^\\n，,；;]+|籍贯[:：][^\\n，,；;]+|户籍[:：][^\\n，,；;]+|河南|洛阳|郑州|东北|本地|外地",
       "type": "region",
       "level": "medium",
       "score": 66,
-      "reason": "籍贯可能成为地域歧视代理变量。",
-      "suggestion": "保留工作地点偏好即可，不展示籍贯。",
+      "reason": "籍贯、户籍或现居地址可能成为地域歧视代理变量。",
+      "suggestion": "保留可到岗城市或通勤安排即可，不展示籍贯、户籍或详细居住地。",
       "compliance": "候选人画像应限制敏感属性采集。"
+    },
+    {
+      "id": "resume-education-background",
+      "pattern": "最高学历[:：][^\\n，,；;]+|教育经历[:：][^\\n，,；;]+|本科|大专|中专/中技|中专|中技|985|211|双一流",
+      "type": "education",
+      "level": "medium",
+      "score": 58,
+      "reason": "学历标签可能在自动筛选中被过度放大，弱化真实技能和项目成果。",
+      "suggestion": "保留与岗位相关的课程、证书、项目和技能证据，避免把学历作为唯一判断依据。",
+      "compliance": "自动筛选应证明学历要求与岗位必要能力存在直接关系。"
+    },
+    {
+      "id": "resume-status-availability-proxy",
+      "pattern": "求职状态[:：][^\\n，,；;]+|离职-随时到岗|在职-考虑机会|正在找工作|待业",
+      "type": "proxy",
+      "level": "medium",
+      "score": 56,
+      "reason": "求职状态可能被系统误读为稳定性、投入度或风险偏好。",
+      "suggestion": "改为说明可到岗周期、交接安排和目标岗位匹配度。",
+      "compliance": "自动化评估应限制与能力无关的代理变量权重。"
     },
     {
       "id": "resume-career-gap",
