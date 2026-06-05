@@ -1,5 +1,13 @@
 import axios from 'axios';
-import type { AuditJobSummary, AuditReportSummary, DebiasingDemoResponse, InterviewRecord, ModelAuditResponse, RoleProfile } from '../types/audit';
+import type {
+  AuditJobSummary,
+  AuditReportSummary,
+  DebiasingDemoResponse,
+  DemoPayload,
+  InterviewRecord,
+  ModelAuditResponse,
+  RoleProfile,
+} from '../types/audit';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
@@ -8,7 +16,7 @@ export const api = axios.create({
   timeout: 10000,
 });
 
-export async function getDemo() {
+export async function getDemo(): Promise<DemoPayload> {
   const { data } = await api.get('/demo');
   return data;
 }

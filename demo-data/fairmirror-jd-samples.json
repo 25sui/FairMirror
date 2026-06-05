@@ -1,0 +1,41 @@
+[
+  {
+    "sample_id": "competition-jd-001",
+    "title": "运营助理",
+    "job_family": "运营",
+    "city": "洛阳或周边居住",
+    "salary": "面议",
+    "education": "大专及以上",
+    "years": "不限",
+    "company": "脱敏企业A",
+    "source": "AI大赛脱敏数据.xlsx/JD部分",
+    "risk_tags": ["age", "education", "region", "workstyle"],
+    "content": "运营助理\n职类：运营\n薪资：面议\n年限要求：不限\n学历要求：大专及以上\n城市要求：洛阳或周边居住\n职位关键词：沟通、执行、数据整理\n职位描述：要求18-24岁，洛阳或周边居住，能吃苦耐劳，抗压能力强，接受加班，负责日常运营数据整理、客户沟通和活动执行。"
+  },
+  {
+    "sample_id": "competition-jd-002",
+    "title": "行政党建专员",
+    "job_family": "行政",
+    "city": "本地优先",
+    "salary": "4K-6K",
+    "education": "本科",
+    "years": "1-3年",
+    "company": "脱敏企业B",
+    "source": "AI大赛脱敏数据.xlsx/JD部分",
+    "risk_tags": ["age", "education", "region"],
+    "content": "行政党建专员\n职类：行政\n薪资：4K-6K\n年限要求：1-3年\n学历要求：本科\n城市要求：本地优先\n职位关键词：行政、党建、材料撰写\n职位描述：要求30岁一45岁，本科及以上，党员优先，本地户籍优先，负责党建材料整理、会议组织、行政协同和档案管理。"
+  },
+  {
+    "sample_id": "competition-jd-003",
+    "title": "门店销售顾问",
+    "job_family": "销售",
+    "city": "不限",
+    "salary": "底薪+提成",
+    "education": "中专/中技及以上",
+    "years": "不限",
+    "company": "脱敏企业C",
+    "source": "AI大赛脱敏数据.xlsx/JD部分",
+    "risk_tags": ["age", "education", "gender_marriage", "workstyle"],
+    "content": "门店销售顾问\n职类：销售\n薪资：底薪+提成\n年限要求：不限\n学历要求：中专/中技及以上\n城市要求：不限\n职位关键词：销售、客户服务、门店\n职位描述：要求19-40周岁，女士优先，形象良好，长期稳定，非诚勿扰，负责客户接待、产品讲解、订单跟进和门店销售目标达成。"
+  }
+]

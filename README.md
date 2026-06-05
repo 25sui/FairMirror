@@ -36,9 +36,9 @@ npm run dev
 
 1. 打开“公平性驾驶舱”，按 5 分钟路演节奏展示业务闭环、技术壁垒和正式报告。
 2. 查看总体风险、偏见热力图、通过率趋势、多角色工作台、审计任务流和报告摘要。
-3. 进入“JD 智能审计”，使用内置高风险 JD 或上传文件，点击开始审计。
+3. 进入“JD 智能审计”，使用内置高风险 JD、比赛脱敏样本或上传文件，点击开始审计。
 4. 查看命中位置、风险原因、替代表达和偏见免疫版 JD。
-5. 进入“简历防御盾”，模拟 ATS 通过率，查看匿名化建议和改写版本。
+5. 进入“简历防御盾”，使用比赛脱敏简历样本，模拟 ATS 通过率，查看匿名化建议和改写版本。
 6. 进入“面试公平监控”，查看 4/5 法则、差异影响比和群体通过率。
 7. 进入“算法壁垒”，查看 RoBERTa 适配层、Token 归因和对抗去偏前后指标。
 8. 进入“合规报告”，导出正式 PDF/JSON 报告，展示证据链、整改路线图和签核区。
@@ -46,7 +46,7 @@ npm run dev
 ## 核心接口
 
 - `GET /api/v1/health`：服务健康检查。
-- `GET /api/v1/demo`：演示输入数据。
+- `GET /api/v1/demo`：演示输入数据，包含内置样例和比赛脱敏派生样本摘要。
 - `GET /api/v1/roles`：企业管理员、HR、求职者、审计员四类角色画像。
 - `GET /api/v1/audit-jobs`：审计任务流。
 - `POST /api/v1/jd/audit`：JD 智能审计。
@@ -58,6 +58,13 @@ npm run dev
 - `GET /api/v1/reports/summary`：全链路审计报告摘要。
 - `POST /api/v1/ai/model-audit`：RoBERTa 适配层文本审计与 Token 归因。
 - `GET /api/v1/ai/debiasing-demo`：对抗去偏训练演示指标。
+
+## 比赛脱敏数据
+
+- 原始文件：`docs/AI大赛脱敏数据.xlsx`，保持只读，不在运行时直接解析。
+- 转换脚本：`scripts/extract_competition_samples.py`，读取 xlsx 底层 XML，兼容常规表格库只能识别 `A1` 的非标准结构。
+- 派生产物：`demo-data/fairmirror-jd-samples.json`、`demo-data/fairmirror-resume-samples.json`，用于岗位审计和简历检查页的“比赛脱敏样本”。
+- 接口回退：派生 JSON 不存在时，`GET /api/v1/demo` 仍返回内置样例和空样本列表，保证服务可启动、测试可复现。
 
 ## 验证命令
 
@@ -81,6 +88,9 @@ npm run build
 - `ai/`：RoBERTa-wwm-ext 与对抗去偏接入骨架。
 - `infra/postgres/init.sql`：PostgreSQL 初始化结构和演示账号。
 - `demo-data/fairmirror-demo.json`：演示输入与合规样例。
+- `demo-data/fairmirror-jd-samples.json`：由比赛脱敏数据派生的岗位样本。
+- `demo-data/fairmirror-resume-samples.json`：由比赛脱敏数据派生的简历样本。
+- `scripts/extract_competition_samples.py`：比赛脱敏 Excel 只读转换脚本。
 - `docs/sample-compliance-report.md`：合规报告样例。
 - `docs/demo-script.md`：5 分钟演示脚本。
 - `docs/pitch-notes.md`：参赛路讲稿要点。

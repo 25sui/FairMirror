@@ -3,17 +3,23 @@ import type { UploadProps } from 'antd';
 import { useEffect, useState } from 'react';
 import { EvidenceText } from '../components/EvidenceText';
 import { auditResume, extractDocument, getDemo } from '../services/api';
-import type { ResumeAuditResponse } from '../types/audit';
+import type { CompetitionResumeSample, ResumeAuditResponse } from '../types/audit';
 
 const { TextArea } = Input;
 
 export function ResumeShieldPage() {
   const [content, setContent] = useState('');
+  const [candidateName, setCandidateName] = useState('张敏');
+  const [targetRole, setTargetRole] = useState('增长产品经理');
   const [result, setResult] = useState<ResumeAuditResponse>();
   const [uploading, setUploading] = useState(false);
+  const [competitionSamples, setCompetitionSamples] = useState<CompetitionResumeSample[]>([]);
 
   useEffect(() => {
-    getDemo().then((demo) => setContent(demo.resume));
+    getDemo().then((demo) => {
+      setContent(demo.resume);
+      setCompetitionSamples(demo.competition_samples.resume.slice(0, 5));
+    });
   }, []);
 
   const uploadProps: UploadProps = {
@@ -24,6 +30,7 @@ export function ResumeShieldPage() {
       try {
         const parsed = await extractDocument(file);
         setContent(parsed.text);
+        setCandidateName((parsed.filename ?? file.name).replace(/\.[^.]+$/, '') || '上传候选人');
         message.success(`已读取 ${parsed.filename ?? file.name}，共 ${parsed.characters} 字符`);
       } catch (error) {
         message.error('文件解析失败，请确认格式或改用可复制文本文件');
@@ -41,8 +48,26 @@ export function ResumeShieldPage() {
           <Upload {...uploadProps}>
             <Button loading={uploading}>上传简历文件</Button>
           </Upload>
+          {competitionSamples.length > 0 && (
+            <Space wrap>
+              <Typography.Text type="secondary">比赛脱敏样本：</Typography.Text>
+              {competitionSamples.map((sample) => (
+                <Button
+                  key={sample.sample_id}
+                  size="small"
+                  onClick={() => {
+                    setContent(sample.content);
+                    setCandidateName(sample.candidate_name);
+                    setTargetRole(sample.target_role);
+                  }}
+                >
+                  {sample.candidate_name} · {sample.target_role}
+                </Button>
+              ))}
+            </Space>
+          )}
           <TextArea value={content} onChange={(event) => setContent(event.target.value)} rows={8} />
-          <Button className="primary-action" type="primary" onClick={() => auditResume('张敏', content, '增长产品经理').then(setResult)}>检查简历</Button>
+          <Button className="primary-action" type="primary" onClick={() => auditResume(candidateName, content, targetRole).then(setResult)}>检查简历</Button>
         </Space>
       </Card>
 

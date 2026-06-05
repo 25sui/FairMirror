@@ -1,20 +1,27 @@
 from __future__ import annotations
 
 import json
-from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 Rule = dict[str, Any]
 
 RULE_FILE = Path(__file__).resolve().parents[1] / "data" / "audit_rules.json"
 
 
-@lru_cache(maxsize=1)
+_RULE_CACHE: Optional[dict[str, Any]] = None
+_RULE_CACHE_MTIME: Optional[float] = None
+
+
 def load_audit_rules() -> dict[str, Any]:
-    with RULE_FILE.open("r", encoding="utf-8") as file:
-        payload = json.load(file)
-    return payload
+    global _RULE_CACHE, _RULE_CACHE_MTIME
+    mtime = RULE_FILE.stat().st_mtime
+    if _RULE_CACHE is None or _RULE_CACHE_MTIME != mtime:
+        with RULE_FILE.open("r", encoding="utf-8") as file:
+            _RULE_CACHE = json.load(file)
+        _RULE_CACHE_MTIME = mtime
+    assert _RULE_CACHE is not None
+    return _RULE_CACHE
 
 
 def rules_for(kind: str) -> list[Rule]:

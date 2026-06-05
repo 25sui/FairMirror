@@ -2,7 +2,7 @@
   "jd": [
     {
       "id": "jd-age-direct",
-      "pattern": "35岁以下|年轻化|年轻人",
+      "pattern": "35岁以下|年轻化|年轻人|\\d{2}\\s*(?:周岁|岁)?\\s*(?:-|一|至|到)\\s*\\d{2}\\s*(?:周岁|岁)?|\\d{2}\\s*(?:周岁|岁)以下|\\d{2}\\s*周岁|年龄要求|应届生|毕业生",
       "type": "age",
       "level": "high",
       "score": 88,
@@ -12,7 +12,7 @@
     },
     {
       "id": "jd-education-elite-school",
-      "pattern": "985|211|双一流|名校",
+      "pattern": "985|211|双一流|名校|本科及以上|大专及以上|中专/中技|中专|学历要求|第一学历|统招本科",
       "type": "education",
       "level": "medium",
       "score": 68,
@@ -22,7 +22,7 @@
     },
     {
       "id": "jd-workstyle-overload",
-      "pattern": "狼性|抗压能力强|高强度加班|长期加班",
+      "pattern": "狼性|抗压能力强|高强度加班|长期加班|吃苦耐劳|接受加班|长期稳定|非诚勿扰",
       "type": "workstyle",
       "level": "medium",
       "score": 64,
@@ -32,7 +32,7 @@
     },
     {
       "id": "jd-gender-marriage",
-      "pattern": "男性优先|女性优先|已婚已育|未婚",
+      "pattern": "男性优先|女性优先|女士优先|男士优先|已婚已育|未婚|婚育|形象良好",
       "type": "gender",
       "level": "high",
       "score": 92,
@@ -42,13 +42,23 @@
     },
     {
       "id": "jd-region-household",
-      "pattern": "本地户籍|本地人|籍贯|外地人",
+      "pattern": "本地户籍|本地人|本地优先|籍贯|外地人|周边居住|现居本地|户籍优先",
       "type": "region",
       "level": "medium",
       "score": 70,
       "reason": "地域信息可能造成与能力无关的机会差异。",
       "suggestion": "改为说明通勤、驻场或服务区域要求。",
       "compliance": "地域限制需证明与岗位履约必要性相关。"
+    },
+    {
+      "id": "jd-identity-political-status",
+      "pattern": "党员优先|党员|政治面貌|团员优先|群众优先",
+      "type": "identity",
+      "level": "medium",
+      "score": 72,
+      "reason": "身份或政治面貌要求需要证明与岗位职责存在直接必要关系，否则可能造成机会差异。",
+      "suggestion": "如非岗位法定或职责必要条件，应删除身份偏好，改为说明合规意识、组织协调或材料处理能力。",
+      "compliance": "招聘筛选条件应遵循最小必要原则，并避免非能力因素影响机会分配。"
     }
   ],
   "resume": [

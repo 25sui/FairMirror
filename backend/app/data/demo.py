@@ -1,3 +1,12 @@
+import json
+from pathlib import Path
+from typing import Any, Dict, List
+
+ROOT = Path(__file__).resolve().parents[3]
+JD_SAMPLE_FILE = ROOT / "demo-data" / "fairmirror-jd-samples.json"
+RESUME_SAMPLE_FILE = ROOT / "demo-data" / "fairmirror-resume-samples.json"
+
+
 SAMPLE_JD = """高级增长产品经理
 岗位要求：35岁以下，985/211本科及以上，抗压能力强，能长期高强度加班和频繁出差。候选人需要有狼性、执行力强，优先考虑本地户籍，有大厂背景者优先。
 """
@@ -15,3 +24,30 @@ SAMPLE_INTERVIEW_RECORDS = [
     {"candidate_id": "C007", "group": "35岁以上", "score": 75, "passed": False, "question_depth": 2},
     {"candidate_id": "C008", "group": "35岁以上", "score": 68, "passed": False, "question_depth": 1},
 ]
+
+
+def _load_json_samples(path: Path) -> List[Dict[str, Any]]:
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    if not isinstance(data, list):
+        return []
+    return [item for item in data if isinstance(item, dict)]
+
+
+def competition_samples() -> Dict[str, Any]:
+    jd_samples = _load_json_samples(JD_SAMPLE_FILE)
+    resume_samples = _load_json_samples(RESUME_SAMPLE_FILE)
+    return {
+        "source_file": "docs/AI大赛脱敏数据.xlsx",
+        "derived_files": {
+            "jd": "demo-data/fairmirror-jd-samples.json",
+            "resume": "demo-data/fairmirror-resume-samples.json",
+        },
+        "jd": jd_samples,
+        "resume": resume_samples,
+        "stats": {"jd_count": len(jd_samples), "resume_count": len(resume_samples)},
+    }

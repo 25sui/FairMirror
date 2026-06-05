@@ -6,6 +6,7 @@ os.environ["DATABASE_URL"] = "sqlite:///./fairmirror_test.db"
 
 from fastapi.testclient import TestClient
 
+from app.data import demo as demo_data
 from app.db.session import engine
 from app.models.domain import Base
 from app.main import app
@@ -34,6 +35,50 @@ def test_health():
     response = client.get("/api/v1/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+def test_demo_payload_includes_competition_sample_container():
+    response = client.get("/api/v1/demo")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["jd"]
+    assert body["resume"]
+    assert body["interview_records"]
+    assert body["competition_samples"]["source_file"] == "docs/AI大赛脱敏数据.xlsx"
+    assert "jd_count" in body["competition_samples"]["stats"]
+    assert "resume_count" in body["competition_samples"]["stats"]
+
+
+def test_competition_sample_loader_falls_back_when_missing(monkeypatch, tmp_path):
+    monkeypatch.setattr(demo_data, "JD_SAMPLE_FILE", tmp_path / "missing-jd.json")
+    monkeypatch.setattr(demo_data, "RESUME_SAMPLE_FILE", tmp_path / "missing-resume.json")
+    samples = demo_data.competition_samples()
+    assert samples["jd"] == []
+    assert samples["resume"] == []
+    assert samples["stats"] == {"jd_count": 0, "resume_count": 0}
+
+
+def test_competition_jd_samples_trigger_expected_rule_audits():
+    samples = {sample["sample_id"]: sample for sample in demo_data.competition_samples()["jd"]}
+    expected_types = {
+        "competition-jd-001": {"age", "education", "region", "workstyle"},
+        "competition-jd-002": {"age", "education", "region", "identity"},
+        "competition-jd-003": {"age", "education", "gender", "workstyle"},
+    }
+    assert expected_types.keys() <= samples.keys()
+
+    for sample_id, required_types in expected_types.items():
+        sample = samples[sample_id]
+        response = client.post(
+            "/api/v1/jd/audit",
+            json={"title": sample["title"], "content": sample["content"], "role": "hr"},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        finding_types = {item["type"] for item in body["findings"]}
+        assert required_types <= finding_types
+        assert body["risk_score"] > 65
+        assert body["rewritten"] != sample["content"]
 
 
 def test_document_extract_supports_text_upload():

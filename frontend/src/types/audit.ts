@@ -114,6 +114,48 @@ export type DebiasingDemoResponse = {
   }[];
 };
 
+export type CompetitionJdSample = {
+  sample_id: string;
+  title: string;
+  job_family?: string;
+  city?: string;
+  salary?: string;
+  education?: string;
+  years?: string;
+  company?: string;
+  source: string;
+  risk_tags: string[];
+  content: string;
+};
+
+export type CompetitionResumeSample = {
+  sample_id: string;
+  candidate_name: string;
+  quality_label?: string;
+  target_role: string;
+  gender?: string;
+  age?: string;
+  education?: string;
+  city?: string;
+  work_years?: string;
+  source: string;
+  risk_tags: string[];
+  content: string;
+};
+
+export type DemoPayload = {
+  jd: string;
+  resume: string;
+  interview_records: InterviewRecord[];
+  competition_samples: {
+    source_file: string;
+    derived_files: { jd: string; resume: string };
+    jd: CompetitionJdSample[];
+    resume: CompetitionResumeSample[];
+    stats: { jd_count: number; resume_count: number };
+  };
+};
+
 export type RoleProfile = {
   role: 'enterprise_admin' | 'hr' | 'candidate' | 'auditor';
   label: string;

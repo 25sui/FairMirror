@@ -3,17 +3,22 @@ import type { UploadProps } from 'antd';
 import { useEffect, useState } from 'react';
 import { EvidenceText } from '../components/EvidenceText';
 import { auditJd, extractDocument, getDemo } from '../services/api';
-import type { JDAuditResponse } from '../types/audit';
+import type { CompetitionJdSample, JDAuditResponse } from '../types/audit';
 
 const { TextArea } = Input;
 
 export function JDAuditPage() {
   const [content, setContent] = useState('');
+  const [auditTitle, setAuditTitle] = useState('高级增长产品经理');
   const [result, setResult] = useState<JDAuditResponse>();
   const [uploading, setUploading] = useState(false);
+  const [competitionSamples, setCompetitionSamples] = useState<CompetitionJdSample[]>([]);
 
   useEffect(() => {
-    getDemo().then((demo) => setContent(demo.jd));
+    getDemo().then((demo) => {
+      setContent(demo.jd);
+      setCompetitionSamples(demo.competition_samples.jd.slice(0, 5));
+    });
   }, []);
 
   const uploadProps: UploadProps = {
@@ -24,6 +29,7 @@ export function JDAuditPage() {
       try {
         const parsed = await extractDocument(file);
         setContent(parsed.text);
+        setAuditTitle((parsed.filename ?? file.name).replace(/\.[^.]+$/, '') || '上传 JD');
         message.success(`已读取 ${parsed.filename ?? file.name}，共 ${parsed.characters} 字符`);
       } catch (error) {
         message.error('文件解析失败，请确认格式或改用可复制文本文件');
@@ -41,8 +47,25 @@ export function JDAuditPage() {
           <Upload {...uploadProps}>
             <Button loading={uploading}>上传 JD 文件</Button>
           </Upload>
+          {competitionSamples.length > 0 && (
+            <Space wrap>
+              <Typography.Text type="secondary">比赛脱敏样本：</Typography.Text>
+              {competitionSamples.map((sample) => (
+                <Button
+                  key={sample.sample_id}
+                  size="small"
+                  onClick={() => {
+                    setContent(sample.content);
+                    setAuditTitle(sample.title);
+                  }}
+                >
+                  {sample.title}
+                </Button>
+              ))}
+            </Space>
+          )}
           <TextArea value={content} onChange={(event) => setContent(event.target.value)} rows={8} />
-          <Button className="primary-action" type="primary" onClick={() => auditJd('高级增长产品经理', content).then(setResult)}>检查岗位</Button>
+          <Button className="primary-action" type="primary" onClick={() => auditJd(auditTitle, content).then(setResult)}>检查岗位</Button>
         </Space>
       </Card>
 

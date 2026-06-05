@@ -1,0 +1,44 @@
+[
+  {
+    "sample_id": "competition-resume-001",
+    "candidate_name": "候选人A",
+    "quality_label": "高",
+    "target_role": "运营专员",
+    "gender": "女",
+    "age": "24",
+    "education": "本科",
+    "city": "河南洛阳",
+    "work_years": "2年",
+    "source": "AI大赛脱敏数据.xlsx/CV部分",
+    "risk_tags": ["age", "education", "region", "gender_marriage"],
+    "content": "姓名：候选人A\n性别：女\n求职状态：正在找工作\n年龄：24\n工作年限：2年\n最高学历：本科\n现居地址：河南洛阳\n求职期望：运营专员\n工作/实习经历：负责社群运营、活动执行和数据复盘，参与用户增长项目。\n教育经历：本科，市场营销相关专业。\n个人优势：熟悉 Excel、活动策划和客户沟通。\n资格证书：普通话证书。"
+  },
+  {
+    "sample_id": "competition-resume-002",
+    "candidate_name": "候选人B",
+    "quality_label": "中",
+    "target_role": "行政专员",
+    "gender": "男",
+    "age": "36",
+    "education": "大专",
+    "city": "本地",
+    "work_years": "8年",
+    "source": "AI大赛脱敏数据.xlsx/CV部分",
+    "risk_tags": ["age", "education", "region"],
+    "content": "姓名：候选人B\n性别：男\n求职状态：离职-随时到岗\n年龄：36\n工作年限：8年\n最高学历：大专\n现居地址：本地\n求职期望：行政专员\n工作/实习经历：负责行政采购、档案管理、会议组织和跨部门协同。\n教育经历：大专，工商管理相关专业。\n个人优势：沟通稳定，熟悉办公流程和供应商管理。\n资格证书：驾驶证。"
+  },
+  {
+    "sample_id": "competition-resume-003",
+    "candidate_name": "候选人C",
+    "quality_label": "中高",
+    "target_role": "销售顾问",
+    "gender": "女",
+    "age": "29",
+    "education": "中专/中技",
+    "city": "郑州",
+    "work_years": "5年",
+    "source": "AI大赛脱敏数据.xlsx/CV部分",
+    "risk_tags": ["age", "education", "region", "gender_marriage"],
+    "content": "姓名：候选人C\n性别：女\n求职状态：在职-考虑机会\n年龄：29\n工作年限：5年\n最高学历：中专/中技\n现居地址：郑州\n求职期望：销售顾问\n工作/实习经历：负责门店客户接待、产品介绍、成交跟进和售后维护，曾连续季度达成销售目标。\n教育经历：中专/中技，电子商务相关专业。\n个人优势：客户沟通能力强，熟悉门店销售流程。\n资格证书：无。"
+  }
+]

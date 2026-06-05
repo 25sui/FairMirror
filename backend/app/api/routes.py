@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.data.demo import SAMPLE_INTERVIEW_RECORDS, SAMPLE_JD, SAMPLE_RESUME
+from app.data.demo import SAMPLE_INTERVIEW_RECORDS, SAMPLE_JD, SAMPLE_RESUME, competition_samples
 from app.db.session import get_db
 from app.schemas.audit import InterviewAuditRequest, InterviewRecord, JDAuditRequest, ModelAuditRequest, ResumeAuditRequest
 from app.services.ai_barrier import debiasing_demo, model_audit
@@ -58,6 +58,7 @@ def demo_payload() -> dict:
         "jd": SAMPLE_JD,
         "resume": SAMPLE_RESUME,
         "interview_records": SAMPLE_INTERVIEW_RECORDS,
+        "competition_samples": competition_samples(),
     }
 
 
